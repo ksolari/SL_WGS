@@ -1,0 +1,7 @@
+## gather stats on Gencove bam files - mapped by Gencove using BWA-MEM
+
+## calculate depth of coverage for each sample
+samtools depth -a Sample1.sorted.bam | awk '{c++;s+=$3}END{print s/c}'
+
+## calculate the bredth of coverage for each sample
+samtools depth -a Sample1.sorted.bam | awk '{c++; if($3>0) total+=1}END{print (total/c)*100}'
