@@ -1,0 +1,37 @@
+module load biology samtools
+module load biology bcftools
+module load system viz
+module load system gnuplot
+
+##India sample
+samtools mpileup -C50 -f ../snowleopard-111120.FINAL.DC2.leoY.fasta ../GenCove_redownload2/GencoveSLdata/bam/India_NCBS_autosome.bam | bcftools call -c - | vcfutils.pl vcf2fq -d 6 -D 25 | gzip > India_NCBS_autosome_diploid.fq.gz
+utils/fq2psmcfa -q20 India_NCBS_autosome_diploid.fq.gz > India_NCBS_autosome_diploid.psmcfa
+./psmc -N25 -t15 -r5 -p "4+25*2+4+6" -o India_NCBS_autosome_diploid.psmc India_NCBS_autosome_diploid.psmcfa
+utils/psmc_plot.pl -u 0.7e-8 -g 5 -R -p India_NCBS_autosome_plot_m7e8g5 India_NCBS_autosome_diploid.psmc
+
+##Mongolia sample
+bcftools mpileup -C50 -f ../snowleopard-111120.FINAL.DC2.leoY.fasta ../GenCove_redownload2/GencoveSLdata/bam/Mong_SRR836372_autosome.bam | bcftools call -c - | vcfutils.pl vcf2fq -d 10 -D 60 | gzip > Mong_SRR836372_autosome_diploid.fq.gz
+utils/fq2psmcfa -q20 Mong_SRR836372_autosome_diploid.fq.gz > Mong_SRR836372_autosome_diploid.psmcfa
+./psmc -N25 -t15 -r5 -p "4+25*2+4+6" -o Mong_SRR836372_autosome_diploid.psmc Mong_SRR836372_autosome_diploid.psmcfa
+utils/psmc_plot.pl -u 0.7e-8 -g 5 -R -p Mong_SRR836372_autosome_plot_m7e8g5  Mong_SRR836372_autosome_diploid.psmc
+
+##Afghanistan sample
+bcftools mpileup -C50 -f ../snowleopard-111120.FINAL.DC2.leoY.fasta ../GenCove_redownload2/GencoveSLdata/bam/AF_SL_08_autosome.bam | bcftools call -c - | vcfutils.pl vcf2fq -d 3 -D 20 | gzip > AF_SL_08_autosome_diploid.fq.gz
+utils/fq2psmcfa -q20 AF_SL_08_autosome_diploid.fq.gz > AF_SL_08_autosome_diploid.psmcfa
+./psmc -N25 -t15 -r5 -p "4+25*2+4+6" -o AF_SL_08_autosome_diploid.psmc  AF_SL_08_autosome_diploid.psmcfa	
+utils/psmc_plot.pl -u 0.7e-8 -g 5 -R -p AF_SL_08_autosome_plot_m7e8g5 AF_SL_08_autosome_diploid.psmc
+
+##captive sample
+bcftools mpileup -C50 -f ../snowleopard-111120.FINAL.DC2.leoY.fasta SRR12437590_sorted_autosome.bam | bcftools call -c - | vcfutils.pl vcf2fq -d 9 -D 56 | gzip > DNAzoo_autosome_diploid.fq.gz
+utils/fq2psmcfa -q20 DNAzoo_autosome_diploid.fq.gz > DNAzoo_autosome_diploid.psmcfa
+./psmc -N25 -t15 -r5 -p "4+25*2+4+6" -o DNAzoo_autosome_diploid.psmc DNAzoo_autosome_diploid.psmcfa
+utils/psmc_plot.pl -u 0.7e-8 -g 5 -R -p DNAzoo_autosome_plot_m7e8g5 DNAzoo_autosome_diploid.psmc
+
+####Bootstraps - repeat for all samples
+utils/splitfa AF_SL_08_autosome_diploid.psmcfa > AF_SL_08_autosome_diploid_split.psmcfa
+./psmc -N25 -t15 -r5 -p "4+25*2+4+6" -o AF_SL_08_autosome_diploid.psmc AF_SL_08_autosome_diploid.psmcfa
+seq 100 | xargs -i echo ./psmc -N25 -t15 -r5 -b -p "4+25*2+4+6"  -o AF_SL_08_set2_round-{}.psmc AF_SL_08_autosome_diploid_split.psmcfa | sh
+cat AF_SL_08_autosome_diploid.psmc AF_SL_08_set2_round*.psmc > AF_SL_08_w30BS.psmc
+utils/psmc_plot.pl -u 0.7e-8 -g 5 -R -p AF_SL_08_w30BS_m7e8g5 AF_SL_08_w30BS.psmc
+
+
