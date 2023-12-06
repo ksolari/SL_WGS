@@ -1,0 +1,20 @@
+##make input files from vcf
+
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref.recode.vcf --plink  --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink
+module load biology plink/1.90b5.3
+plink --file CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink --allow-extra-chr  --recode12 --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12
+
+##make list of samples in order of how you'd like them plotted in a txt file and use this to reorder your data
+
+plink --file CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12 --indiv-sort f SL_no10x_no0108KGf4AF6_India_ordered.txt --allow-extra-chr --make-bed --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12_ordered
+plink --bfile CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12_ordered --recode --allow-extra-chr --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12_ordered_Ped
+
+###Admixture script:
+for K in 1 2 3 4 5 6 7 8 9 10;
+        do admixture -s time --cv CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_India_1nonref_plink12_ordered_Ped.ped $K | tee log${K}_NoIndia_1.out; done
+
+###make this new script executable:
+chmod 711 AdmixtureCVloopNoU01U08AF06KGf4_noIndia_1.sh
+
+###run it:
+./AdmixtureCVloopNoCaptive.sh
