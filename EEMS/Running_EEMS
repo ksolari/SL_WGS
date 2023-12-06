@@ -1,0 +1,58 @@
+###installing bed2diffs and making input file
+
+##Note - for eems input, you need to remove all underscores from sample names and make chromosome names into numbers. I recommend doing this in the .vcf file you’re starting with.
+
+module load biology plink/1.90b5.3
+plink --vcf your_vcf.vcf --make-bed --out your_bed
+
+git clone https://github.com/mfranberg/libplinkio
+cd libplinkio
+git checkout 781e9ee37076
+./configure --prefix=/oak/stanford/groups/dpetrov/ksolari/eems/eems/bed2diffs/src/libplinkio/src/
+make
+make check 
+make install
+
+#update PLINKIO in the Makefile in src and src-without-openmp directories to: PLINKIO = /oak/stanford/groups/dpetrov/ksolari/eems/eems/bed2diffs/src/libplinkio/
+
+module load system gcc
+make linux
+../../bed2diffs/src/bed2diffs_v1 --bfile your_bed 
+
+
+##Installing eems:
+
+module load system gh
+gh repo clone dipetkov/eems
+
+#Download boost_1_57_0.tar.bz2
+
+#Download eigen-3.2.10.tar.gz
+
+tar --bzip2 -xf boost_1_57_0.tar.bz2
+tar -xvf eigen-3.2.10.tar.gz
+module load gcc/6.3.0
+#In boost folder:
+./bootstrap.sh --prefix=./compiled
+./b2 install
+
+
+#In runeems_snp folder patch makefile with right directory - for example:
+EIGEN_INC = /scratch/users/ksolari/eems/eigen-3.2.10
+BOOST_LIB = /scratch/users/ksolari/eems/boost_1_57_0/compiled/lib
+BOOST_INC = /scratch/users/ksolari/eems/boost_1_57_0/compiled/include
+
+make linux
+
+##run eems
+module load gcc/6.3.0
+
+./runeems_snps --params param-SL31_postGATK_17d.ini --seed 123
+
+
+####for eems input, need to remove all underscores from sample names and make chromosome names into numbers
+###make bed file from vcf file
+plink --vcf Input.recode.vcf --make-bed --out output_bed
+../eems/eems/bed2diffs/src/bed2diffs_v1  --bfile output_bed
+
+
