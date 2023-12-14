@@ -1,0 +1,90 @@
+module load biology bwa
+module load biology samtools
+module load biology angsd
+gunzip GCF_003709585.1_Aci_jub_2_genomic.fna.gz
+bwa index GCF_003709585.1_Aci_jub_2_genomic.fna
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737540_1.fastq SRR2737540_2.fastq | samtools view -bS - | samtools sort - > SRR2737540_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737541_1.fastq SRR2737541_2.fastq | samtools view -bS - | samtools sort - > SRR2737541_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737542_1.fastq SRR2737542_2.fastq | samtools view -bS - | samtools sort - > SRR2737542_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737543_1.fastq SRR2737543_2.fastq | samtools view -bS - | samtools sort - > SRR2737543_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737544_1.fastq SRR2737544_2.fastq | samtools view -bS - | samtools sort - > SRR2737544_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737545_1.fastq SRR2737545_2.fastq | samtools view -bS - | samtools sort - > SRR2737545_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR2737545_1.fastq SRR2737545_2.fastq | samtools view -bS - | samtools sort - > SRR2737545_sorted.bam
+bwa mem -t 4 GCF_003709585.1_Aci_jub_2_genomic.fna SRR9951918_1.fastq SRR9951918_3.fastq | samtools view -bS - | samtools sort - > Rico_SRR9951918_sorted.bam
+
+
+
+module load biology bwa
+module load biology samtools
+module load biology angsd
+bwa index GCF_003327715.1_PumCon1.0_genomic.fna
+cat SRR7542886_1.fastq SRR7542887_1.fastq SRR7542888_1.fastq > BR406_all_1.fastq
+cat SRR7542886_2.fastq SRR7542887_2.fastq SRR7542888_2.fastq > BR406_all_2.fastq
+cat SRR7537344_1.fastq SRR7537345_1.fastq > SC29_all_1.fastq
+cat SRR7537344_2.fastq SRR7537345_2.fastq > SC29_all_2.fastq
+cat SRR7543017_1.fastq SRR7543018_1.fastq > SMM22_all_1.fastq
+cat SRR7543017_2.fastq SRR7543018_2.fastq > SMM22_all_2.fastq
+cat SRR7610940_1.fastq SRR7610941_1.fastq > YNP198_all_1.fastq
+cat SRR7610940_2.fastq SRR7610941_2.fastq > YNP198_all_2.fastq
+cat SRR7660678_1.fastq SRR7660679_1.fastq > EVG21_all_1.fastq
+cat SRR7660678_2.fastq SRR7660679_2.fastq > EVG21_all_2.fastq
+cat SRR7664677_1.fastq SRR7664678_1.fastq > CYP47_all_1.fastq
+cat SRR7664677_2.fastq SRR7664678_2.fastq > CYP47_all_1.fastq
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna BR406_all_1.fastq BR406_all_2.fastq | samtools view -bS - | samtools sort - > BR406_all_sorted.bam
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna SC29_all_1.fastq SC29_all_2.fastq | samtools view -bS - | samtools sort - > SC29_all_sorted.bam
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna SMM22_all_1.fastq SMM22_all_2.fastq | samtools view -bS - | samtools sort - > SMM22_all_sorted.bam
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna YNP198_all_1.fastq YNP198_all_2.fastq | samtools view -bS - | samtools sort - > YNP198_all_sorted.bam
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna EVG21_all_1.fastq EVG21_all_2.fastq | samtools view -bS - | samtools sort - > EVG21_all_sorted.bam
+bwa mem -t 4 GCF_003327715.1_PumCon1.0_genomic.fna CYP47_all_1.fastq CYP47_all_2.fastq | samtools view -bS - | samtools sort - > CYP47_all_sorted.bam
+
+
+module load biology bwa
+module load biology samtools
+bwa index GCA_021130815.1_PanTigT.MC.v3_genomic.fna
+samtools faidx GCA_021130815.1_PanTigT.MC.v3_genomic.fna
+
+cat SRR13647580_1.fastq SRR13647581_1.fastq > SRS8209313_all_1.fastq
+cat SRR13647580_2.fastq SRR13647581_2.fastq > SRS8209313_all_2.fastq
+bwa mem -t 4 GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13500746_1.fastq SRR13500746_2.fastq | samtools view -bS - | samtools sort - > SRR13500746_sorted.bam
+bwa mem -t 4 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13500752_1.fastq SRR13500752_2.fastq | samtools view -bS - | samtools sort - > SRR13500752_sorted.bam
+bwa mem -t 4 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209282_all_1.fastq SRS8209282_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209282_all_sorted.bam
+bwa mem -t 4 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209284_all_1.fastq SRS8209284_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209284_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209286_all_1.fastq SRS8209286_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209286_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209294_all_1.fastq SRS8209294_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209294_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209296_all_1.fastq SRS8209296_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209296_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209300_all_1.fastq SRS8209300_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209300_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209305_all_1.fastq SRS8209305_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209305_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRS8209313_all_1.fastq SRS8209313_all_2.fastq | samtools view -bS - | samtools sort - > SRS8209313_all_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647621_1.fastq SRR13647621_2.fastq| samtools view -bS - | samtools sort - > SRR13647621_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647627_1.fastq SRR13647627_2.fastq| samtools view -bS - | samtools sort - > SRR13647627_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647652_1.fastq SRR13647652_2.fastq| samtools view -bS - | samtools sort - > SRR13647652_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647654_1.fastq SRR13647654_2.fastq| samtools view -bS - | samtools sort - > SRR13647654_sorted.bam
+wa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647577_1.fastq SRR13647577_2.fastq | samtools view -bS - | samtools sort - > SRR13647577_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647578_1.fastq SRR13647578_2.fastq | samtools view -bS - | samtools sort - > SRR13647578_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13647591_1.fastq SRR13647591_2.fastq | samtools view -bS - | samtools sort - > SRR13647591_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13500748_1.fastq SRR13500748_2.fastq | samtools view -bS - | samtools sort - > SRR13500748_sorted.bam
+bwa mem -t 8 ../GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13500756_1.fastq SRR13500756_2.fastq | samtools view -bS - | samtools sort - > SRR13500756_sorted.bam
+bwa mem -t 4 GCA_021130815.1_PanTigT.MC.v3_genomic.fna SRR13500762_1.fastq SRR13500762_2.fastq | samtools view -bS - | samtools sort - > SRR13500762_sorted.bam
+
+
+
+module load biology bwa
+module load biology samtools
+module load biology angsdbwa index GCA_008795835.1_PanLeo1.0_genomic.fna
+samtools faidx GCA_008795835.1_PanLeo1.0_genomic.fna
+bwa mem -t 4 GCA_008795835.1_PanLeo1.0_genomic.fna SRR10009886_1.fastq SRR10009886_2.fastq | samtools view -bS - | samtools sort - > SRR10009886_sorted.bam
+bwa mem -t 4 GCA_008795835.1_PanLeo1.0_genomic.fna SRR13242484_1.fastq SRR13242484_2.fastq | samtools view -bS - | samtools sort - > SRR13242484_sorted.bam
+bwa mem -t 4 GCA_008795835.1_PanLeo1.0_genomic.fna SRR836361.1_1.fastq SRR836361.1_2.fastq | samtools view -bS - | samtools sort - > SRR836361_sorted.bam
+bwa mem -t 4 GCA_008795835.1_PanLeo1.0_genomic.fna SRR836370_1.fastq SRR836370_2.fastq | samtools view -bS - | samtools sort - > SRR836370_sorted.bam
+
+
+
+module load biology bwa
+module load biology samtools
+bwa index Panthera_onca_HiC.fasta
+samtools faidx Panthera_onca_HiC.fasta
+bwa mem -t 8 Panthera_onca_HiC.fasta SRR11097154_1.fastq SRR11097154_2.fastq | samtools view -bS - | samtools sort - > SRR11097154_sorted_B.bam
+bwa mem -t 8 Panthera_onca_HiC.fasta SRR14572000_1.fastq SRR14572000_2.fastq | samtools view -bS - | samtools sort - > SRR14572000_sorted_B.bam
+bwa mem -t 8 Panthera_onca_HiC.fasta SRR4444360_1.fastq SRR4444360_2.fastq | samtools view -bS - | samtools sort - > SRR4444360_sorted_B.bam
+
+
