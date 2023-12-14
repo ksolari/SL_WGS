@@ -1,0 +1,4 @@
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01_1nonref.recode.vcf  --het --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01_1nonref_het
+
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf  --het --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_het
+
