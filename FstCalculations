@@ -1,0 +1,10 @@
+##Remove captive samples:
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_1nonref.recode.vcf  --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive --remove-indv MSB_M1  --remove-indv MSB_F1 --remove-indv SL_M11136_Bronx --remove-indv DNAzoo --remove-indv PA_Zoo --recode
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive.recode.vcf --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive_1nonref --non-ref-ac-any 1 --recode
+
+module load biology plink/1.90b5.3
+plink --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive_1nonref.recode.vcf --allow-extra-chr --double-id --recode --transpose --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive_plink
+
+ml biology plink
+./plink2 --tfile GencoveSLdata/vcf/CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive_plink --allow-extra-chr  --out Fst_postGATK_NvsS_noIndia --within GencoveSLdata/vcf/PopulationsNvsS_noIndia.txt --fst CATPHENO  method=wc 
+./plink2 --tfile GencoveSLdata/vcf/CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_noCaptive_plink --allow-extra-chr  --out Fst_postGATK_NvsSvsKryg_noIndia --within GencoveSLdata/vcf/PopulationsNvsSvsKyrg_noIndia.txt --fst CATPHENO  method=wc 
