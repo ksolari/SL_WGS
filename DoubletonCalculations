@@ -1,0 +1,13 @@
+## keep only sites with a minor allele count of 2
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf --keep South_North_Kyrg_list_downsampled.txt --mac 2 --max-mac 2 --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled --recode
+
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled.recode.vcf --singletons --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled
+
+##remove sites where both rare alleles are in one individual 
+sed -i 's/0\/\0/.\/\./g' CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled.recode.vcf
+sed -i 's|1/1|./.|g' CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled.recode.vcf
+
+##calculate how many doubletons each pair of individuals share
+plink --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled.recode.vcf --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_S_N_kyrg_dubletons_downsampled_IBS --allow-extra-chr --double-id --genome full 
+
+
