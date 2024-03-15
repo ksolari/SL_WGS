@@ -1,32 +1,137 @@
-###create a vcf for each group where the .txt file has a sample name on each line
-bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_1nonref.recode.vcf -S Russia_Mong.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong.vcf.gz
-bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_1nonref.recode.vcf -S South_noIndia.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South.vcf.gz
-bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_1nonref.recode.vcf -S Kyrgyzstan.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz
-bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_1nonref.recode.vcf -S South_noKyrg.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrgvcf.gz
-bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_NoIndia_1nonRef.recode.vcf -S Russia_Mong_subsampled.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz
+###make subsets of vcf for each group being compared
+bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf -S North_n15_list.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n15.vcf.gz
+bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf -S South_Kyrg_n15_list.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_SouthKyrg_n15.vcf.gz
+bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf -S North_n7_list.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz
+bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf -S Kyrg_n7_list.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz
+bcftools view CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf -S South_n7_list.txt --min-ac=1 -O z -o CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz
 
 
-bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong.vcf.gz
-bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz
-bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South.vcf.gz
-bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz
-bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz
+NOTES:
+####Sample list for each set:
+####North full sample set (n= 15):
+SL_Mong_F8
+SL_Mong_F9
+SL_Mong_M1
+SL_Mong_M10
+SL_Mong_M9
+U06
+U07
+U08
+U14
+U15
+U04
+U05
+Mong_SRR836372
+U03
+U09
+###South full sample set (S+ kyrg) (n= 15):
+SL_KGZ_F1
+SL_KGZ_F2
+SL_KGZ_F3
+SL_KGZ_F4
+SL_KGZ_M1
+SL_KGZ_M2
+SL_KGZ_M3
+U10
+U11
+U13
+AF_SL_05
+AF_SL_06
+AF_SL_07
+AF_SL_08
+Leo
+####North subset (n=7):
+SL_Mong_F8
+SL_Mong_M9
+U07
+U04
+U05
+U03
+U09
+####Kyrg subset (n=7):
+SL_KGZ_F1
+SL_KGZ_F2
+SL_KGZ_F3
+SL_KGZ_F4
+SL_KGZ_M1
+SL_KGZ_M2
+SL_KGZ_M3
+####South subset (n=7):
+U10
+U11
+U13
+AF_SL_05
+AF_SL_07
+AF_SL_08
+Leo
 
-bcftools isec -n +2 CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South.vcf.gz -p North_South_compare
-bcftools isec -n +1 CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South.vcf.gz -p North_South_compare_n1
-bcftools isec CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South.vcf.gz -p North_South_compare_noN
+####Index all new vcf files
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n15.vcf.gz
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_SouthKyrg_n15.vcf.gz
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz
 
-bcftools isec -n~111 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p NKS
-##Shared by All - 398843
-bcftools isec -n~110 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p NK
-##Shared by N and K - 64319
-bcftools isec -n~101 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p NS
-##Shared by N and S - 92170
-bcftools isec -n~011 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p KS
-##Shared between K and S - 63286
-bcftools isec -n~001 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p S
-##South only - 234825
-bcftools isec -n~010 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p K
-##K only - 109016
-bcftools isec -n~100 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Russia_Mong_subsampled.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_Kyrgyzstan.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_noIndia_South_noKyrg.vcf.gz -p N
-##North only - 224417
+####calulate overlap
+###N vs S only
+bcftools isec -n~11 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n15.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_SouthKyrg_n15.vcf.gz -p NS
+grep -v '#' 0000.vcf | wc -l
+###Shared by both - 598449
+
+bcftools isec -n~10 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n15.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_SouthKyrg_n15.vcf.gz -p NnotS
+grep -v '#' 0000.vcf | wc -l
+###Unique to North - 379861
+
+bcftools isec -n~01 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n15.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_SouthKyrg_n15.vcf.gz -p SnotN
+grep -v '#' 0000.vcf | wc -l
+###Unique to South - 364010
+
+####N v S v K
+bcftools isec -n~111 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p NKS
+grep -v '#' 0000.vcf | wc -l
+###Shared by All - 394020
+bcftools isec -n~110 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p NK
+grep -v '#' 0000.vcf | wc -l
+###Shared by N and K - 65181
+bcftools isec -n~101 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p NS
+grep -v '#' 0000.vcf | wc -l
+###Shared by N and S - 90176
+bcftools isec -n~011 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p KS
+grep -v '#' 0001.vcf | wc -l
+###Shared between K and S - 64871
+bcftools isec -n~001 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p S
+grep -v '#' 0002.vcf | wc -l
+###South only - 222569
+bcftools isec -n~010 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p K
+grep -v '#' 0001.vcf | wc -l
+###K only - 111392
+bcftools isec -n~100 -c all CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_North_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_Kyrg_n7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref_South_n7.vcf.gz -p N
+grep -v '#' 0000.vcf | wc -l
+###North only - 219175
+
+
+##### R script for plotting
+setwd("~/Documents/R")
+install.packages("VennDiagram")               
+library("VennDiagram")   
+grid.newpage()
+
+######FINAL march 2024 - with equal sample sizes due to reviewer comments
+area1 = 364010 + 598449
+area2 = 379861 + 598449
+x1 <- draw.pairwise.venn(area1=area1, area2 = area2, cross.area = 598449, fill=c("#CCBFFF","#FFBF7F"))
+
+n123 = 394020
+North = 219175 + 394020 + 65181 + 90176
+South = 222569 + 394020 + 90176 + 64871
+Kyrg = 111392 + 394020 + 64871 + 65181
+NK = 65181 + 394020
+NS = 90176 + 394020
+KS = 64871 + 394020
+grid.newpage()
+x <- draw.triple.venn(area1=North,area2=South, area3=Kyrg,n12=NS,n23=KS,n13=NK, n123=394020,
+                      fill=c("#FFBF7F","#CCBFFF","#19B2FF"))
+
+
+
+
