@@ -1,0 +1,31 @@
+##published data for two tigers that I already mapped to the snow leopard reference as part of Supplementary Methods: SRR13647578_Sumatran_sorted.bam and SRR13500748_Bengal_sorted.bam
+
+###extract SNP location data from snow leopard vcf
+../../bedops/bin/vcf2bed --snvs -d < CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf.bed
+cut -f 1,2,3 CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf.bed > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.bed
+
+###sort bed file
+bedtools sort -i CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.bed > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_sorted.bed
+
+###call SNPs for two tiger samples at all of the locations in the filtered snow leopard vcf
+bcftools mpileup -A -a AD,DP -R CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref_sorted.bed -f ../../snowleopard-111120.FINAL.DC2.leoY.fasta -b TigerBamList_n2.txt  -O v -o Tiger_n2_SL_GencoveSNPs_mpileup_B.vcf
+bcftools call Tiger_n2_SL_GencoveSNPs_mpileup_B.vcf -m -O v -o TigerBamList_n2_SL_SNPcalls_GencoveSNPs_B.vcf
+
+###merge the two vcfs
+bgzip -c TigerBamList_n2_SL_SNPcalls_GencoveSNPs_B.vcf > TigerBamList_n2_SL_SNPcalls_GencoveSNPs_B.vcf.gz
+bgzip -c CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf.gz
+bcftools index -t TigerBamList_n2_SL_SNPcalls_GencoveSNPs_B.vcf.gz
+bcftools index -t CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf.gz
+ml biology vcftools
+vcf-merge TigerBamList_n2_SL_SNPcalls_GencoveSNPs_B.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10xU01U08AF06KGf4_1nonref.recode.vcf.gz | bgzip -c > All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs.vcf.gz
+gunzip All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs.vcf.gz 
+
+###retain only biallelic sites as non-biallelic sites will cause an error in next steps
+vcftools --vcf All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs.vcf --out All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs_biallelic --min-alleles 2 --max-alleles 2 --recode
+
+###make phylip file from merged vcf file
+./../../SL_Gencove_redownload_8_2023/GencoveSLdata/bam/completed/vcf2phylip/vcf2phylip.py -i All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs_biallelic.recode.vcf -o SRR13647578_Sumatran_sorted --output-folder VCF2phylipOutput_37SL_2Tiger_GencoveSNPs
+
+###make tree with IQtree
+./../../iqtree-2.3.2-Linux-intel/bin/iqtree2 -s VCF2phylipOutput_37SL_2Tiger_GencoveSNPs/All_WGS_snps_37SL_2Tiger_forTree_merge_GencoveSNPs_biallelic.recode.min4.phy -st DNA -m GTR+ASC -T 10 -B 1000 --prefix IQtreeN37_2Tiger_GencoveSNPs
+./../../iqtree-2.3.2-Linux-intel/bin/iqtree2 -s IQtreeN37_2Tiger_GencoveSNPs.varsites.phy -st DNA -m GTR+ASC -T 10 -B 1000 --prefix IQtreeN37_2Tiger_GencoveSNPs
