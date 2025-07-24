@@ -1,0 +1,293 @@
+##Filter vcfs (ours and gencove calls) to each only contain individuals with 8X coverage or higher (n=15)
+vcftools --vcf ../../SL_Gencove_redownload_8_2023/GencoveSLdata/bam/completed/SL_n28_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall.recode.vcf --out SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall --keep KeepFromOurs_8X.txt --recode
+vcftools --vcf SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall.recode.vcf --out SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref --non-ref-ac-any 1 --recode
+
+vcftools --vcf ../../SL_relativesRemoved/CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_1nonref.recode.vcf --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15 --keep KeepFromGencove_8X.txt --recode
+vcftools --vcf CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15.recode.vcf --out CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref --non-ref-ac-any 1 --recode
+
+
+###RUNNING SNPeff####
+
+###Make new database using snow leopard genome##
+
+##Generally following steps outlined here - https://github.com/BeckySTaylor/Phylogenomic_Analyses/blob/main/SnpEff
+wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip
+unzip snpEff_latest_core.zip
+## Edit config file to have snow leopard listed under '# Non-standard Databases' 
+nano snpEff.config 
+##add 'snow_leopard.genome : Panthera_uncia' to this section of config file
+##organize files and folders so that SNPeff can find them. In snpeff folder:
+mkdir data
+cd data
+mkdir genomes
+mkdir snow_leopard
+#copy the genome file to the 'genomes' folder and name it ‘snow_leopard.fa'
+#downloaded annotation files from https://www.ncbi.nlm.nih.gov/datasets/genome/?taxon=29064
+#copy to the .gtf file to the 'snow_leopard' folder and name it 'genes.gtf'
+#copy to the protein fasta file to the 'snow_leopard' folder and name it 'protein.fa'
+##rename the scaffolds in the fasta file to match the annotation files:
+cat snow_leopard_original.fa | sed -e 's/CM043163.1/NC_064807.1/g' | sed -e 's/CM043154.1/NC_064808.1/g' | sed -e 's/CM043162.1/NC_064809.1/g' | sed -e 's/CM043158.1/NC_064810.1/g' | sed -e 's/CM043153.1/NC_064811.1/g' | sed -e 's/CM043160.1/NC_064812.1/g' | sed -e 's/CM043155.1/NC_064814.1/g' | sed -e 's/CM043156.1/NC_064813.1/g' | sed -e 's/CM043161.1/NC_064815.1/g' | sed -e 's/CM043157.1/NC_064816.1/g' | sed -e 's/CM043164.1/NC_064817.1/g' | sed -e 's/CM043159.1/NC_064818.1/g' | sed -e 's/JAJAOB010000016.1/NW_026057576.1/g' | sed -e 's/JAJAOB010000017.1/NW_026057577.1/g' | sed -e 's/JAJAOB010000011.1/NW_026057578.1/g' | sed -e 's/JAJAOB010000012.1/NW_026057579.1/g' | sed -e 's/JAJAOB010000023.1/NW_026057580.1/g' | sed -e 's/JAJAOB010000024.1/NW_026057581.1/g' | sed -e 's/JAJAOB010000001.1/NW_026057582.1/g' | sed -e 's/JAJAOB010000002.1/NW_026057583.1/g' | sed -e 's/JAJAOB010000003.1/NW_026057584.1/g' | sed -e 's/JAJAOB010000004.1/NW_026057585.1/g' | sed -e 's/JAJAOB010000008.1/NW_026057586.1/g' | sed -e 's/JAJAOB010000009.1/NW_026057587.1/g' | sed -e 's/JAJAOB010000019.1/NW_026057588.1/g' | sed -e 's/JAJAOB010000020.1/NW_026057589.1/g' > snow_leopard_rename.fa
+##only retain the known autosome scaffolds:
+samtools faidx snow_leopard_rename.fa -r Chrom.txt  > snow_leopard_rename_chromosomes.fa
+##Make the snpeff database using the .gtf file and use the protein.fa to check it:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar build -gtf22 -v snow_leopard -noCheckCds
+
+
+##Edit each vcf file to have the same scaffold names and break HiC_scaffold22 up into chromosome E1 and F1
+
+##Our vcf file
+
+##Extract HiC_scaffold_22
+grep "HiC_scaffold_22" SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref.recode.vcf > Ourcalls_8X_n15_HiCscaffold22only.txt
+##pull out only first part that is chromosome E1 (aka NC_064813)
+head -60288 Ourcalls_8X_n15_HiCscaffold22only.txt > Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only.txt
+##remove header lines
+grep -v “#” Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only.txt > Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only_noheader.txt
+##rename HiC_scaffold22 as NC_064813.1 for E1 section
+cat Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only_noheader.txt| sed -e 's/HiC_scaffold_22/NC_064813.1/g'  > Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only_noheader_renamed.txt
+##pull out second part of file that is chromosome F1 (aka NC_064814)
+tail -61447 Ourcalls_8X_n15_HiCscaffold22only.txt > Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only.txt
+##rename HiC_scaffold22 as NC_064814.1 for F1 section
+cat Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only.txt| sed -e 's/HiC_scaffold_22/NC_064814.1/g'  > Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only_renamed.txt
+##subtract 67650000 (length of E1) from each position in F1
+awk '{ $2 -= 67650000; print }' Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only_renamed.txt > Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only_renamed_edited.txt
+##change spaces to tabs in output file
+perl -p -i -e 's/ /\t/g' Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only_renamed_edited.txt 
+##extract all lines that are not from HiC_scaffold_22 from original vcf file
+grep -v "^HiC_scaffold_22" SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref.recode.vcf > Ourcalls_8X_n15_NO_HiCscaffold22.vcf
+##Concatenate original vcf minus HiC_scaffold_22 with new lines accurately representing what was previously HiC_scaffold_22 but is now divided up into chromosome E1 and F1
+cat Ourcalls_8X_n15_NO_HiCscaffold22.vcf Ourcalls_8X_n15_HiC_scaffold_22_E1_NC_064813only_noheader_renamed.txt Ourcalls_8X_n15_HiC_scaffold_22_F1_NC_064814only_renamed_edited.txt > SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed.vcf
+##rename the remaining scaffolds to match what is in reference genome
+cat SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed.vcf | sed -e 's/HiC_scaffold_10/NC_064807.1/g' | sed -e 's/HiC_scaffold_13/NC_064808.1/g' | sed -e 's/HiC_scaffold_14/NC_064809.1/g' | sed -e 's/HiC_scaffold_15/NC_064810.1/g' | sed -e 's/HiC_scaffold_18/NC_064811.1/g' | sed -e 's/HiC_scaffold_21/NC_064812.1/g' | sed -e 's/HiC_scaffold_23/NC_064815.1/g' | sed -e 's/HiC_scaffold_5/NC_064816.1/g' | sed -e 's/HiC_scaffold_6/NC_064817.1/g' | sed -e 's/HiC_scaffold_7/NC_064818.1/g' | sed -e 's/HiC_scaffold_16/NW_026057576.1/g' | sed -e 's/HiC_scaffold_17/NW_026057577.1/g' | sed -e 's/HiC_scaffold_11/NW_026057578.1/g' | sed -e 's/HiC_scaffold_12/NW_026057579.1/g' | sed -e 's/HiC_scaffold_25/NW_026057581.1/g' | sed -e 's/HiC_scaffold_24/NW_026057580.1/g' | sed -e 's/HiC_scaffold_4/NW_026057585.1/g' | sed -e 's/HiC_scaffold_3/NW_026057584.1/g' | sed -e 's/HiC_scaffold_9/NW_026057587.1/g' | sed -e 's/HiC_scaffold_8/NW_026057586.1/g' | sed -e 's/HiC_scaffold_19/NW_026057588.1/g' | sed -e 's/HiC_scaffold_20/NW_026057589.1/g' | sed -e 's/HiC_scaffold_2/NW_026057583.1/g' | sed -e 's/HiC_scaffold_1/NW_026057582.1/g'  > SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames.vcf
+##Fix header to reflect changes made in HiC_scaffold 22:
+##pull out only header lines
+grep "#" SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames.vcf > SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_header.txt
+##Add the following text to the header:
+##contig=<ID=NC_064813.1,length=67650000>
+##contig=<ID=NC_064814.1,length=61834490>
+##make vcf with new header
+grep -v "#" SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames.vcf > SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_noheader.txt
+cat SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_header.txt SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_noheader.txt > SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf
+
+##Gencove vcf file
+
+##HiC_scaffold22 is already split into E1 and F1 in this vcf
+##change chromosome names to match what is in reference genome:
+cat CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref.recode.vcf | sed -e 's/HiC_scaffold_10/NC_064807.1/g' | sed -e 's/HiC_scaffold_13/NC_064808.1/g' | sed -e 's/HiC_scaffold_14/NC_064809.1/g' | sed -e 's/HiC_scaffold_15/NC_064810.1/g' | sed -e 's/HiC_scaffold_18/NC_064811.1/g' | sed -e 's/HiC_scaffold_21/NC_064812.1/g' | sed -e 's/HiC_scaffold_22_E1/NC_064813.1/g' | sed -e 's/HiC_scaffold_22_F1/NC_064814.1/g' | sed -e 's/HiC_scaffold_23/NC_064815.1/g' | sed -e 's/HiC_scaffold_5/NC_064816.1/g' | sed -e 's/HiC_scaffold_6/NC_064817.1/g' | sed -e 's/HiC_scaffold_7/NC_064818.1/g' | sed -e 's/HiC_scaffold_16/NW_026057576.1/g' | sed -e 's/HiC_scaffold_17/NW_026057577.1/g' | sed -e 's/HiC_scaffold_11/NW_026057578.1/g' | sed -e 's/HiC_scaffold_12/NW_026057579.1/g' | sed -e 's/HiC_scaffold_25/NW_026057581.1/g' | sed -e 's/HiC_scaffold_24/NW_026057580.1/g' | sed -e 's/HiC_scaffold_4/NW_026057585.1/g' | sed -e 's/HiC_scaffold_3/NW_026057584.1/g' | sed -e 's/HiC_scaffold_9/NW_026057587.1/g' | sed -e 's/HiC_scaffold_8/NW_026057586.1/g' | sed -e 's/HiC_scaffold_19/NW_026057588.1/g' | sed -e 's/HiC_scaffold_20/NW_026057589.1/g' | sed -e 's/HiC_scaffold_2/NW_026057583.1/g' | sed -e 's/HiC_scaffold_1/NW_026057582.1/g'  > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames.vcf
+##subtract 67650000 (length of E1) from each position in F1
+grep "NC_064814.1" CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames.vcf > Gencove_8X_n15_NC_064814only.txt
+awk '{ $2 -= 67650000; print }' Gencove_8X_n15_NC_064814only.txt > Gencove_8X_n15_NC_064814only_edited.txt
+##change spaces to tabs in output file
+perl -p -i -e 's/ /\t/g' Gencove_8X_n15_NC_064814only_edited.txt 
+##extract all lines that are not from F1 (NC_064814.1) from original vcf file
+grep -v "NC_064814.1" CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames.vcf > Gencove_8X_n15_NO_NC_064814.vcf
+##Concatenate original vcf minus F1 (NC_064814.1) with new lines accurately positions of F1 SNPs
+cat Gencove_8X_n15_NO_NC_064814.vcf Gencove_8X_n15_NC_064814only_edited.txt > CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf
+
+##Run SNPeff on each vcf:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar snow_leopard ../../FinalVCFs/SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf > SL_Ourcalls_8X_n15_annotated.vcf
+java -Xmx4g -jar snpEff.jar snow_leopard ../../FinalVCFs/CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf > SL_Gencove_8X_n15_annotated.vcf
+
+
+###Run GERP following protocol outlined here (https://star-protocols.cell.com/protocols/4202#bib2) to identify derived SNPS
+
+##make newick tree based on this publication - https://www.science.org/doi/10.1126/sciadv.1700299#sec-3
+##and using substitutions per site estimates as 0.0022 mutations per million years:
+(((Panthera_leo:0.005654,Panthera_pardus:0.005654):0.002376,Panthera_onca:0.00792):0.002046,(Panthera_uncia:0.007634,Panthera_tigris:0.007634):0.002442);
+##Download the genomes for all Panthera species
+./../NCBI_scripts/datasets download genome accession GCA_018350195.2 --include gff3,genome,gtf
+./../NCBI_scripts/datasets download genome accession GCA_018350215.1 --include gff3,genome,gtf
+./../NCBI_scripts/datasets download genome accession GCA_028533385.1 --include gff3,genome,gtf
+./../NCBI_scripts/datasets download genome accession GCA_023721935.1 --include gff3,genome,gtf
+./../NCBI_scripts/datasets download genome accession GCA_024362965.1 --include gff3,genome,gtf
+##make Control.tsv file with list of genomes and species names
+##edit Pipeline_input_alignment_GERP.sh as discribed in - https://star-protocols.cell.com/protocols/4202#bib2
+##and some minor changes to increase specificity -  changed 'bwa mem -B 4' from 3;  'samtools view -bq 4' from 2
+##run script:
+ml biology bwa
+ml biology samtools
+ml biology bcftools
+bash Pipeline_input_alignment_GERP.sh
+###use htsbox to geneate concensus sequeses for each species using bam files generated by this script 
+##NOTE this is different from what is scribed in the star protocol but follows what is discribed in the Current Biology manuscript (https://www.sciencedirect.com/science/article/pii/S0960982224001441#fig4)
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_023721935.1_Puncia_PCG_1.0_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_leo/Panthera_leo_filtered_sorted.bam > Panthera_leo_filtered_sorted_concenus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_023721935.1_Puncia_PCG_1.0_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_onca/Panthera_onca_filtered_sorted.bam > Panthera_onca_filtered_sorted_concenus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_023721935.1_Puncia_PCG_1.0_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_pardus/Panthera_pardus_filtered_sorted.bam > Panthera_pardus_filtered_sorted_concenus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_023721935.1_Puncia_PCG_1.0_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_tigris/Panthera_tigris_filtered_sorted.bam > Panthera_tigris_filtered_sorted_concenus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_023721935.1_Puncia_PCG_1.0_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_uncia/Panthera_uncia_filtered_sorted.bam > Panthera_uncia_filtered_sorted_concenus.fasta
+##split each consensus fasta into scaffolds:
+csplit -s -n 1 --prefix=Panthera_leo_Scaffold -z Panthera_leo_filtered_sorted_concenus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_onca_Scaffold -z Panthera_onca_filtered_sorted_concenus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_pardus_Scaffold -z Panthera_pardus_filtered_sorted_concenus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_tigris_Scaffold -z Panthera_tigris_filtered_sorted_concenus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_uncia_Scaffold -z Panthera_uncia_filtered_sorted_concenus.fasta '/>/' '{*}'
+##Change the header of each fasta file to be the species name
+ls Panthera_tigris_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_tigris/"
+ls Panthera_onca_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_onca/"
+ls Panthera_pardus_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_pardus/"
+ls Panthera_leo_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_leo/"
+ls Panthera_uncia_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_uncia/"
+##concatenate sequences to make one alignment file for each scaffold that includes all 5 Panthera species
+cat *Scaffold1 > Panthera_n5_Scaffold1.fasta
+cat *Scaffold2 > Panthera_n5_Scaffold2.fasta
+cat *Scaffold3 > Panthera_n5_Scaffold3.fasta
+cat *Scaffold4 > Panthera_n5_Scaffold4.fasta
+cat *Scaffold5 > Panthera_n5_Scaffold5.fasta
+cat *Scaffold6 > Panthera_n5_Scaffold6.fasta
+cat *Scaffold7 > Panthera_n5_Scaffold7.fasta
+cat *Scaffold8 > Panthera_n5_Scaffold8.fasta
+cat *Scaffold9 > Panthera_n5_Scaffold9.fasta
+cat *Scaffold0 > Panthera_n5_Scaffold0.fasta
+cat *Scaffold10 > Panthera_n5_Scaffold10.fasta
+cat *Scaffold11 > Panthera_n5_Scaffold11.fasta
+cat *Scaffold12 > Panthera_n5_Scaffold12.fasta
+cat *Scaffold13 > Panthera_n5_Scaffold13.fasta
+cat *Scaffold14 > Panthera_n5_Scaffold14.fasta
+cat *Scaffold15 > Panthera_n5_Scaffold15.fasta
+cat *Scaffold16 > Panthera_n5_Scaffold16.fasta
+cat *Scaffold17 > Panthera_n5_Scaffold17.fasta
+cat *Scaffold18 > Panthera_n5_Scaffold18.fasta
+cat *Scaffold19 > Panthera_n5_Scaffold19.fasta
+cat *Scaffold20 > Panthera_n5_Scaffold20.fasta
+cat *Scaffold21 > Panthera_n5_Scaffold21.fasta
+cat *Scaffold22 > Panthera_n5_Scaffold22.fasta
+cat *Scaffold23 > Panthera_n5_Scaffold23.fasta
+cat *Scaffold24 > Panthera_n5_Scaffold24.fasta
+##Run GERP on each scaffold alignment
+ml system gcc
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold0.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold1.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold2.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold3.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold4.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold5.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold6.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold7.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold8.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold9.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold10.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold11.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold12.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold13.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold14.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold15.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold16.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold17.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold18.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold19.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold20.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold21.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold22.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold23.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_Scaffold24.fasta -a -e Panthera_tigris-Panthera_pardus-Panthera_leo -v 
+
+###Divide vcf up into by scaffold. 
+##Note that the alignments have been renamed Scaffold 0-24
+bgzip CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf
+bcftools index CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+
+bgzip SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf
+bcftools index SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+
+bcftools view -r NW_026057576.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold0.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057577.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold1.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064811.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold2.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064808.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold3.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064814.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold4.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064813.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold5.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064816.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold6.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057578.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold7.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057579.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold8.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064810.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold9.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064818.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold10.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064812.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold11.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057580.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold12.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057581.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold13.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064815.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold14.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057582.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold15.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057583.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold16.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064809.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold17.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NC_064807.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold18.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057584.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold19.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057585.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold20.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057586.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold21.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057587.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold22.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057588.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold23.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+bcftools view -r NW_026057589.1 -Oz -o SL_Gencove_8X_n15_vcf_scaffold24.vcf.gz CombinedAnnotations_wHeaderD_filtered_pass_1nonref_90maxmis_IndRename_no10x_Gencove_8X_n15_1nonref_newChromNames_NC_064814fixed.vcf.gz
+
+bcftools view -r NW_026057576.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold0.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057577.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold1.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064811.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold2.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064808.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold3.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064814.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold4.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064813.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold5.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064816.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold6.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057578.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold7.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057579.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold8.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064810.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold9.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064818.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold10.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064812.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold11.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057580.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold12.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057581.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold13.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064815.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold14.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057582.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold15.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057583.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold16.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064809.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold17.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NC_064807.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold18.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057584.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold19.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057585.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold20.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057586.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold21.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057587.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold22.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057588.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold23.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+bcftools view -r NW_026057589.1 -Oz -o SL_Ours_8X_n15_vcf_scaffold24.vcf.gz SL_Ourcalls_8X_n15_allScaffolds_sorted_wHeader_map100_filtered_pass_noIndel_biall_1nonref_E1F1fixed_newChromNames_final.vcf.gz
+
+###Run Rscript (from https://star-protocols.cell.com/protocols/4202#bib2) to pull out only derived snps - makes one file per scaffold per sample
+# Example control file
+../FinalVCFs/SL_Gencove_8X_n15_vcf_scaffold0.vcf.gz
+../Panthera_n5_Scaffold0.fasta.rates
+0
+SL_Gencove_8X_n15_vcf_scaffold0_GERP_out
+8
+
+##run the R script:
+Rscript Derived_alleles_extract.R SL_controlFile1.txt
+
+##add a column to each output file with the header "Chrom" and the scaffold ID to each row
+##example for scaffold9 for sample 1
+##this line must be run for each scaffold and each sample
+awk -F',' 'BEGIN {OFS=","} NR==1{$0=$0",Chrom"} NR>1{$0=$0",scaffold9"} 1' 1_SL_Gencove_8X_n15_vcf_scaffold9_GERP_out.txt > 1_SL_Gencove_8X_n15_vcf_scaffold9_GERP_out_edited.txt
+
+###concatenate all scaffolds for each sample
+cat 10_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 10_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 11_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 11_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 12_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 12_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 13_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 13_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 14_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 14_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 15_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 15_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 1_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 1_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 2_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 2_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 3_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 3_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 4_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 4_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 5_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 5_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 6_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 6_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 7_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 7_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 8_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 8_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+cat 9_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 9_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+
+cat 10_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 10_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 11_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 11_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 12_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 12_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 13_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 13_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 14_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 14_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 15_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 15_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 1_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 1_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 2_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 2_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 3_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 3_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 4_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 4_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 5_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 5_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 6_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 6_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 7_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 7_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 8_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 8_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+cat 9_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 9_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
