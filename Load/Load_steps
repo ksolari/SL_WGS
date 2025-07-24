@@ -260,34 +260,122 @@ Rscript Derived_alleles_extract.R SL_controlFile1.txt
 awk -F',' 'BEGIN {OFS=","} NR==1{$0=$0",Chrom"} NR>1{$0=$0",scaffold9"} 1' 1_SL_Gencove_8X_n15_vcf_scaffold9_GERP_out.txt > 1_SL_Gencove_8X_n15_vcf_scaffold9_GERP_out_edited.txt
 
 ###concatenate all scaffolds for each sample
-cat 10_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 10_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 11_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 11_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 12_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 12_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 13_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 13_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 14_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 14_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 15_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 15_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
+#eample for one sample - repeat for each sample (1-15)
 cat 1_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 1_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 2_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 2_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 3_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 3_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 4_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 4_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 5_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 5_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 6_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 6_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 7_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 7_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 8_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 8_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-cat 9_SL_Gencove_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 9_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt
-
-cat 10_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 10_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 11_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 11_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 12_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 12_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 13_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 13_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 14_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 14_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 15_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 15_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
 cat 1_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 1_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 2_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 2_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 3_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 3_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 4_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 4_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 5_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 5_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 6_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 6_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 7_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 7_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 8_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 8_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
-cat 9_SL_Ours_8X_n15_vcf_scaffold*_GERP_out_edited.txt > 9_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt
+
+###Remove header lines from concatenated files:
+#eample for one sample - repeat for each sample (1-15)
+grep -v "Pos" 1_SL_Gencove_8X_n15_GERP_out_AllScaffolds.txt > 1_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 1_SL_Ours_8X_n15_GERP_out_AllScaffolds.txt > 1_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt
+
+##Pull out just chromosomes and positions and change file name back to actual sample names
+awk -F',' '{print $NF","$1}' 10_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 11_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > Leo_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 12_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > India_NCBS_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 13_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > DNAzoo_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 14_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > Mong_SRR836372_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 15_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U03_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > SL_M11136_Bronx_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U01_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U04_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U05_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U06_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 6_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U07_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 7_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U08_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 8_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U09_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 9_SL_Gencove_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U14_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt
+
+awk -F',' '{print $NF","$1}' 10_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U14_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 11_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > AF_SL_08_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 12_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > Leo_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 13_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > India_NCBS_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 14_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > DNAzoo_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 15_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > Mong_SRR836372_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > SL_M11136_Bronx_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U01_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U03_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U04_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U05_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 6_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U06_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 7_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U07_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 8_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U08_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 9_SL_Ours_8X_n15_GERP_out_AllScaffolds_noHeader.txt > U09_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt
+
+###Change commas to tabs
+#example for one sample (repeat for each sample)
+sed 's/,/\t/g' AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds_bed.txt > AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' AF_SL_08_Ours_8X_n15_GERP_out_AllScaffolds_bed.txt > AF_SL_08_Ours_8X_n15_GERP_out_AllScaffolds.bed
+
+###rename chromosomes in bed file to match what it in vcf
+#example for one sample (repead for each sample)
+cat AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/NW_026057576.1/g' | sed -e 's/scaffold24/NW_026057589.1/g' | sed -e 's/scaffold23/NW_026057588.1/g' | sed -e 's/scaffold22/NW_026057587.1/g' | sed -e 's/scaffold21/NW_026057586.1/g' | sed -e 's/scaffold20/NW_026057585.1/g' | sed -e 's/scaffold19/NW_026057584.1/g' | sed -e 's/scaffold18/NC_064807.1/g' | sed -e 's/scaffold17/NC_064809.1/g' | sed -e 's/scaffold16/NW_026057583.1/g' | sed -e 's/scaffold15/NW_026057582.1/g' | sed -e 's/scaffold14/NC_064815.1/g' | sed -e 's/scaffold13/NW_026057581.1/g' | sed -e 's/scaffold12/NW_026057580.1/g' | sed -e 's/scaffold11/NC_064812.1/g' | sed -e 's/scaffold10/NC_064818.1/g' | sed -e 's/scaffold9/NC_064810.1/g' | sed -e 's/scaffold8/NW_026057579.1/g' | sed -e 's/scaffold7/NW_026057578.1/g' | sed -e 's/scaffold6/NC_064816.1/g' | sed -e 's/scaffold5/NC_064813.1/g' | sed -e 's/scaffold4/NC_064814.1/g' | sed -e 's/scaffold3/NC_064808.1/g' | sed -e 's/scaffold2/NC_064811.1/g' | sed -e 's/scaffold1/NW_026057577.1/g'  > AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed
+
+###Split annotated vcf files (SNPeff output) into one file per individual
+##need to add "##contig=<ID=NC_064814.1,length=61834490>" to header of SL_Gencove_8X_n15_annotated.vcf
+ml biology bcftools
+bcftools view -s SL_M11136_Bronx -o SL_Gencove_annotated_SL_M11136_Bronx.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U01 -o SL_Gencove_annotated_U01.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U04 -o SL_Gencove_annotated_U04.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U05 -o SL_Gencove_annotated_U05.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U06 -o SL_Gencove_annotated_U06.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U07 -o SL_Gencove_annotated_U07.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U08 -o SL_Gencove_annotated_U08.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U09 -o SL_Gencove_annotated_U09.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U14 -o SL_Gencove_annotated_U14.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s AF_SL_08 -o SL_Gencove_annotated_AF_SL_08.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s Leo -o SL_Gencove_annotated_Leo.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s India_NCBS -o SL_Gencove_annotated_India_NCBS.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s DNAzoo -o SL_Gencove_annotated_DNAzoo.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s Mong_SRR836372 -o SL_Gencove_annotated_Mong_SRR836372.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+bcftools view -s U03 -o SL_Gencove_annotated_U03.vcf SL_Gencove_8X_n15_annotated_headerEdited.vcf
+
+bcftools view -s 18032FL-104-N715S508_S213_L004 -o SL_Ours_annotated_SL_M11136_Bronx.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-02-01_S45_L004 -o SL_Ours_annotated_U01.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-04-01_S47_L004 -o SL_Ours_annotated_U03.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-05-01_S48_L004 -o SL_Ours_annotated_U04.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-06-01_S49_L004 -o SL_Ours_annotated_U05.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-07-01_S50_L004 -o SL_Ours_annotated_U06.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-08-01_S51_L004 -o SL_Ours_annotated_U07.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-09-01_S52_L004 -o SL_Ours_annotated_U08.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-10-01_S53_L004 -o SL_Ours_annotated_U09.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s 18032FL-99-15-01_S58_L004 -o SL_Ours_annotated_U14.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s AF_SL_08 -o SL_Ours_annotated_AF_SL_08.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s Leo -o SL_Ours_annotated_Leo.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s Puncia-34 -o SL_Ours_annotated_India_NCBS.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s SRR12437590 -o SL_Ours_annotated_DNAzoo.vcf SL_Ourcalls_8X_n15_annotated.vcf
+bcftools view -s SRR836372_1 -o SL_Ours_annotated_Mong_SRR836372.vcf SL_Ourcalls_8X_n15_annotated.vcf
+
+###Pull out only derived SNPs from each vcf using the bed file of derived sites
+grep -Ff PantheraRefGenomes/AF_SL_08_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_AF_SL_08.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_AF_SL_08_derived.txt
+grep -Ff PantheraRefGenomes/DNAzoo_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_DNAzoo.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_DNAzoo_derived.txt
+grep -Ff PantheraRefGenomes/India_NCBS_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_India_NCBS.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_India_NCBS_derived.txt
+grep -Ff PantheraRefGenomes/Leo_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_Leo.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_Leo_derived.txt
+grep -Ff PantheraRefGenomes/Mong_SRR836372_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_Mong_SRR836372.vcf  > Filtered_vcf_perInd/SL_Gencove_annotated_Mong_SRR836372_derived.txt
+grep -Ff PantheraRefGenomes/SL_M11136_Bronx_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_SL_M11136_Bronx.vcf  > Filtered_vcf_perInd/SL_Gencove_annotated_SL_M11136_Bronx_derived.txt
+grep -Ff PantheraRefGenomes/U01_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U01.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U01_derived.txt
+grep -Ff PantheraRefGenomes/U03_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U03.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U03_derived.txt
+grep -Ff PantheraRefGenomes/U04_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U04.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U04_derived.txt
+grep -Ff PantheraRefGenomes/U05_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U05.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U05_derived.txt
+grep -Ff PantheraRefGenomes/U06_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U06.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U06_derived.txt
+grep -Ff PantheraRefGenomes/U07_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U07.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U07_derived.txt
+grep -Ff PantheraRefGenomes/U08_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U08.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U08_derived.txt
+grep -Ff PantheraRefGenomes/U09_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U09.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U09_derived.txt
+grep -Ff PantheraRefGenomes/U14_Gencove_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Gencove_annotated_U14.vcf > Filtered_vcf_perInd/SL_Gencove_annotated_U14_derived.txt
+
+grep -Ff PantheraRefGenomes/AF_SL_08_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_AF_SL_08.vcf > Filtered_vcf_perInd/SL_Ours_annotated_AF_SL_08_derived.txt
+grep -Ff PantheraRefGenomes/DNAzoo_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_DNAzoo.vcf > Filtered_vcf_perInd/SL_Ours_annotated_DNAzoo_derived.txt
+grep -Ff PantheraRefGenomes/India_NCBS_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_India_NCBS.vcf > Filtered_vcf_perInd/SL_Ours_annotated_India_NCBS_derived.txt
+grep -Ff PantheraRefGenomes/Leo_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_Leo.vcf > Filtered_vcf_perInd/SL_Ours_annotated_Leo_derived.txt
+grep -Ff PantheraRefGenomes/Mong_SRR836372_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_Mong_SRR836372.vcf > Filtered_vcf_perInd/SL_Ours_annotated_Mong_SRR836372_derived.txt
+grep -Ff PantheraRefGenomes/SL_M11136_Bronx_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_SL_M11136_Bronx.vcf > Filtered_vcf_perInd/SL_Ours_annotated_SL_M11136_Bronx_derived.txt
+grep -Ff PantheraRefGenomes/U01_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U01.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U01_derived.txt
+grep -Ff PantheraRefGenomes/U03_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U03.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U03_derived.txt
+grep -Ff PantheraRefGenomes/U04_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U04.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U04_derived.txt
+grep -Ff PantheraRefGenomes/U05_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U05.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U05_derived.txt
+grep -Ff PantheraRefGenomes/U06_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U06.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U06_derived.txt
+grep -Ff PantheraRefGenomes/U07_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U07.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U07_derived.txt
+grep -Ff PantheraRefGenomes/U08_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U08.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U08_derived.txt
+grep -Ff PantheraRefGenomes/U09_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U09.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U09_derived.txt
+grep -Ff PantheraRefGenomes/U14_Ours_8X_n15_GERP_out_AllScaffolds_renamed.bed snpeff/snpEff/SL_Ours_annotated_U14.vcf > Filtered_vcf_perInd/SL_Ours_annotated_U14_derived.txt
+
