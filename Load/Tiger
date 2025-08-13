@@ -1,0 +1,378 @@
+###Liftover our SNP calls to annotated reference genome
+##Original fasta - GCA_021130815.1_PanTigT.MC.v3_genomic.fna
+##Annotated fasta - GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+##Vcf - Amur_n5_map100_filtered_pass_noIndel_biall.recode.vcf
+##make alignment between the two reference genomes:
+./minimap2 -c ../../../Panthera/PantheraHet/Tiger/GCA_021130815.1_PanTigT.MC.v3_genomic.fna ../../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna -t 8 > aln_tiger_GCA_018350195_GCA_021130815_c_reverse.paf
+##make chain file:
+paf2chain -i aln_tiger_GCA_018350195_GCA_021130815_c_reverse.paf > aln_tiger_GCA_018350195_GCA_021130815_c_reverse.chain
+##make dictionary:
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar CreateSequenceDictionary R=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna O=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.dict
+##liftover
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar LiftoverVcf I=../../Panthera/PantheraHet/Tiger/Amur/Amur_n5_map100_filtered_pass_noIndel_biall.recode.vcf O=Amur_n5_lifted_over_c_rev.vcf CHAIN=aln_tiger_GCA_018350195_GCA_021130815_c_reverse.chain REJECT=Amur_n5_rejected_variants_c_rev.vcf R=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar LiftoverVcf I=../../Panthera/PantheraHet/Tiger/Bengal/Bengal_n5_map100_filtered_pass_noIndel_biall.recode.vcf O=Bengal_n5_lifted_over_c_rev.vcf CHAIN=aln_tiger_GCA_018350195_GCA_021130815_c_reverse.chain REJECT=Bengal_n5_rejected_variants_c_rev.vcf R=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar LiftoverVcf I=../../Panthera/PantheraHet/Tiger/Malayan/Malayan_n5_map100_filtered_pass_noIndel_biall.recode.vcf O=Malayan_n5_lifted_over_c_rev.vcf CHAIN=aln_tiger_GCA_018350195_GCA_021130815_c_reverse.chain REJECT=Malayan_n5_rejected_variants_c_rev.vcf R=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar LiftoverVcf I=../../Panthera/PantheraHet/Tiger/Sumatran/Sumatran_n5_map100_filtered_pass_noIndel_biall.recode.vcf O=Sumatran_n5_lifted_over_c_rev.vcf CHAIN=aln_tiger_GCA_018350195_GCA_021130815_c_reverse.chain REJECT=Sumatran_n5_rejected_variants_c_rev.vcf R=../PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+
+###Make new SnpEff database using new tiger genome##
+
+## Edit config file to have tiger listed under '# Non-standard Databases' 
+nano snpEff.config 
+##Add "tiger.genome : Panterha_tigris"
+mkdir Panthera_tigris
+
+#copy the genome file to the 'genomes' folder and name it ‘Panthera_tigris.fa'
+mv ncbi_dataset/data/GCA_018350195.2/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna /data/genomes/Panthera_tigris.fa
+
+#copy to the .gtf file to the 'snow_leopard' folder and name it 'genes.gtf'
+mv ../Tiger_annotated_genome_dwnld/ncbi_dataset/data/GCF_018350195.1/genomic.gtf Panthera_tigris/genes.gtf
+
+#copy to the protein fasta file to the 'snow_leopard' folder and name it 'protein.fa'
+mv ../Tiger_annotated_genome_dwnld/ncbi_dataset/data/GCF_018350195.1/protein.faa Panthera_tigris/protein.fa
+
+##rename the scaffolds in the fasta file to match the annotation files:
+cat Panthera_tigris_original.fa | sed -e 's/CM031431.1/NC_056660.1/g' | sed -e 's/CM031432.1/NC_056661.1/g' | sed -e 's/CM031433.1/NC_056662.1/g' | sed -e 's/CM031434.1/NC_056663.1/g' | sed -e 's/CM031435.1/NC_056664.1/g' | sed -e 's/CM031436.1/NC_056665.1/g' | sed -e 's/CM031437.1/NC_056666.1/g' | sed -e 's/CM031438.1/NC_056667.1/g' | sed -e 's/CM031439.1/NC_056668.1/g' | sed -e 's/CM031440.1/NC_056669.1/g' | sed -e 's/CM031441.1/NC_056670.1/g' | sed -e 's/CM031442.1/NC_056671.1/g' | sed -e 's/CM031443.1/NC_056672.1/g' | sed -e 's/CM031444.1/NC_056673.1/g' | sed -e 's/CM031445.1/NC_056674.1/g' | sed -e 's/CM031446.1/NC_056675.1/g' | sed -e 's/CM031447.1/NC_056676.1/g' | sed -e 's/CM031448.1/NC_056678.1/g' > Panthera_tigris.fa
+
+##only retain autosomes 
+samtools faidx Panthera_tigris.fa -r Ptigris_chrom.txt  > Panthera_tigris_chromosomes.fa
+
+##Make the snpeff database using the .gtf file and use the protein.fa to check it:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar build -gtf22 -v Panthera_tigris -noCheckCds
+
+##Run SNPeff on each vcf from liftover:
+###change vcf scaffold names to names used to make database
+cat ../../Tiger/Amur_n5_lifted_over_c_rev.vcf | sed -e 's/CM031431.1/NC_056660.1/g' | sed -e 's/CM031432.1/NC_056661.1/g' | sed -e 's/CM031433.1/NC_056662.1/g' | sed -e 's/CM031434.1/NC_056663.1/g' | sed -e 's/CM031435.1/NC_056664.1/g' | sed -e 's/CM031436.1/NC_056665.1/g' | sed -e 's/CM031437.1/NC_056666.1/g' | sed -e 's/CM031438.1/NC_056667.1/g' | sed -e 's/CM031439.1/NC_056668.1/g' | sed -e 's/CM031440.1/NC_056669.1/g' | sed -e 's/CM031441.1/NC_056670.1/g' | sed -e 's/CM031442.1/NC_056671.1/g' | sed -e 's/CM031443.1/NC_056672.1/g' | sed -e 's/CM031444.1/NC_056673.1/g' | sed -e 's/CM031445.1/NC_056674.1/g' | sed -e 's/CM031446.1/NC_056675.1/g' | sed -e 's/CM031447.1/NC_056676.1/g' | sed -e 's/CM031448.1/NC_056678.1/g' > Amur_n5_lifted_over_c_rev_NCchromNames.vcf
+cat ../../Tiger/Bengal_n5_lifted_over_c_rev.vcff | sed -e 's/CM031431.1/NC_056660.1/g' | sed -e 's/CM031432.1/NC_056661.1/g' | sed -e 's/CM031433.1/NC_056662.1/g' | sed -e 's/CM031434.1/NC_056663.1/g' | sed -e 's/CM031435.1/NC_056664.1/g' | sed -e 's/CM031436.1/NC_056665.1/g' | sed -e 's/CM031437.1/NC_056666.1/g' | sed -e 's/CM031438.1/NC_056667.1/g' | sed -e 's/CM031439.1/NC_056668.1/g' | sed -e 's/CM031440.1/NC_056669.1/g' | sed -e 's/CM031441.1/NC_056670.1/g' | sed -e 's/CM031442.1/NC_056671.1/g' | sed -e 's/CM031443.1/NC_056672.1/g' | sed -e 's/CM031444.1/NC_056673.1/g' | sed -e 's/CM031445.1/NC_056674.1/g' | sed -e 's/CM031446.1/NC_056675.1/g' | sed -e 's/CM031447.1/NC_056676.1/g' | sed -e 's/CM031448.1/NC_056678.1/g' > Bengal_n5_lifted_over_c_rev_NCchromNames.vcf
+cat ../../Tiger/Malayan_n5_lifted_over_c_rev.vcf | sed -e 's/CM031431.1/NC_056660.1/g' | sed -e 's/CM031432.1/NC_056661.1/g' | sed -e 's/CM031433.1/NC_056662.1/g' | sed -e 's/CM031434.1/NC_056663.1/g' | sed -e 's/CM031435.1/NC_056664.1/g' | sed -e 's/CM031436.1/NC_056665.1/g' | sed -e 's/CM031437.1/NC_056666.1/g' | sed -e 's/CM031438.1/NC_056667.1/g' | sed -e 's/CM031439.1/NC_056668.1/g' | sed -e 's/CM031440.1/NC_056669.1/g' | sed -e 's/CM031441.1/NC_056670.1/g' | sed -e 's/CM031442.1/NC_056671.1/g' | sed -e 's/CM031443.1/NC_056672.1/g' | sed -e 's/CM031444.1/NC_056673.1/g' | sed -e 's/CM031445.1/NC_056674.1/g' | sed -e 's/CM031446.1/NC_056675.1/g' | sed -e 's/CM031447.1/NC_056676.1/g' | sed -e 's/CM031448.1/NC_056678.1/g' > Malayan_n5_lifted_over_c_rev_NCchromNames.vcf
+cat ../../Tiger/Sumatran_n5_lifted_over_c_rev.vcf | sed -e 's/CM031431.1/NC_056660.1/g' | sed -e 's/CM031432.1/NC_056661.1/g' | sed -e 's/CM031433.1/NC_056662.1/g' | sed -e 's/CM031434.1/NC_056663.1/g' | sed -e 's/CM031435.1/NC_056664.1/g' | sed -e 's/CM031436.1/NC_056665.1/g' | sed -e 's/CM031437.1/NC_056666.1/g' | sed -e 's/CM031438.1/NC_056667.1/g' | sed -e 's/CM031439.1/NC_056668.1/g' | sed -e 's/CM031440.1/NC_056669.1/g' | sed -e 's/CM031441.1/NC_056670.1/g' | sed -e 's/CM031442.1/NC_056671.1/g' | sed -e 's/CM031443.1/NC_056672.1/g' | sed -e 's/CM031444.1/NC_056673.1/g' | sed -e 's/CM031445.1/NC_056674.1/g' | sed -e 's/CM031446.1/NC_056675.1/g' | sed -e 's/CM031447.1/NC_056676.1/g' | sed -e 's/CM031448.1/NC_056678.1/g' > Sumatran_n5_lifted_over_c_rev_NCchromNames.vcf
+
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar -stats Tiger_Amur_n5_stats_orig.html Panthera_tigris Amur_n5_lifted_over_c_rev_NCchromNames.vcf > Tiger_Amur_n5_annoted_original.vcf
+java -Xmx4g -jar snpEff.jar -stats Tiger_Bengal_n5_stats_orig.html Panthera_tigris Bengal_n5_lifted_over_c_rev_NCchromNames.vcf > Tiger_Bengal_n5_annoted_original.vcf
+java -Xmx4g -jar snpEff.jar -stats Tiger_Malayan_n5_stats_orig.html Panthera_tigris Malayan_n5_lifted_over_c_rev_NCchromNames.vcf > Tiger_Malayan_n5_annoted_original.vcf
+java -Xmx4g -jar snpEff.jar -stats Tiger_Sumatran_n5_stats_orig.html Panthera_tigris Sumatran_n5_lifted_over_c_rev_NCchromNames.vcf > Tiger_Sumatran_n5_annoted_original.vcf
+
+##GERP:
+# Index the FASTA file 
+samtools faidx GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna
+
+# Extract specific scaffolds
+samtools faidx GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna CM031431.1 CM031432.1 CM031433.1 CM031434.1 CM031435.1 CM031436.1 CM031437.1 CM031438.1 CM031439.1 CM031440.1 CM031441.1 CM031442.1 CM031443.1 CM031444.1 CM031445.1 CM031446.1 CM031447.1 CM031448.1 >  GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna
+
+##make Control.tsv file with list of genomes and species names
+GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna        Panthera_tigris
+GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna   Panthera_leo
+GCA_023721935.1_Puncia_PCG_1.0_genomic.fna	Panthera_uncia
+GCA_024362965.1_ASM2436296v1_genomic.fna        Panthera_pardus
+GCA_028533385.1_Panthera_onca_HiC_genomic.fna   Panthera_onca
+
+##edit Pipeline_input_alignment_GERP.sh as discribed in - https://star-protocols.cell.com/protocols/4202#bib2
+##and some minor changes to increase specificity -  changed 'bwa mem -B 4' from 3;  'samtools view -bq 4' from 2
+##run script:
+ml biology bwa
+ml biology samtools
+ml biology bcftools
+bash Pipeline_input_alignment_GERP_tiger.sh
+
+###use htsbox to generate consensus sequences for each species using bam files generated by this script 
+##NOTE this is different from what is scribed in the star protocol but follows what is described in the Current Biology manuscript (https://www.sciencedirect.com/science/article/pii/S0960982224001441#fig4)
+
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_leo/Panthera_leo_filtered_sorted.bam > Panthera_leo_filtered_sorted_concenus_vsPtigris.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_onca/Panthera_onca_filtered_sorted.bam > Panthera_onca_filtered_sorted_concenus_vsPtigris.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_pardus/Panthera_pardus_filtered_sorted.bam > Panthera_pardus_filtered_sorted_concenus_vsPtigris.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_tigris/Panthera_tigris_filtered_sorted.bam > Panthera_tigris_filtered_sorted_concenus_vsPtigris.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_uncia/Panthera_uncia_filtered_sorted.bam > Panthera_uncia_filtered_sorted_concenus_vsPtigris.fasta
+
+##split each consensus fasta into scaffolds:
+csplit -s -n 1 --prefix=Panthera_leo_Scaffold_vsPtigris -z Panthera_leo_filtered_sorted_concenus_vsPtigris.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_pardus_Scaffold_vsPtigris -z  Panthera_pardus_filtered_sorted_concenus_vsPtigris.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_tigris_Scaffold_vsPtigris -z  Panthera_tigris_filtered_sorted_concenus_vsPtigris.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_uncia_Scaffold_vsPtigris -z Panthera_uncia_filtered_sorted_concenus_vsPtigris.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_onca_Scaffold_vsPtigris -z Panthera_onca_filtered_sorted_concenus_vsPtigris.fasta '/>/' '{*}'
+
+##Change the header of each fasta file to be the species name
+ls Panthera_tigris_Scaffold_vsPtigris* |   xargs -n1 sed -i "1s/.*/>Panthera_tigris/"
+ls Panthera_onca_Scaffold_vsPtigris* |   xargs -n1 sed -i "1s/.*/>Panthera_onca/"
+ls Panthera_pardus_Scaffold_vsPtigris* |   xargs -n1 sed -i "1s/.*/>Panthera_pardus/"
+ls Panthera_leo_Scaffold_vsPtigris* |   xargs -n1 sed -i "1s/.*/>Panthera_leo/"
+ls Panthera_uncia_Scaffold_vsPtigris* |   xargs -n1 sed -i "1s/.*/>Panthera_uncia/"
+
+##concatenate sequences to make one alignment file for each scaffold that includes all 5 Panthera species
+cat *Scaffold_vsPtigris1 > Panthera_n5_vsPtigris_Scaffold1.fasta
+cat *Scaffold_vsPtigris2 > Panthera_n5_vsPtigris_Scaffold2.fasta
+cat *Scaffold_vsPtigris3 > Panthera_n5_vsPtigris_Scaffold3.fasta
+cat *Scaffold_vsPtigris4 > Panthera_n5_vsPtigris_Scaffold4.fasta
+cat *Scaffold_vsPtigris5 > Panthera_n5_vsPtigris_Scaffold5.fasta
+cat *Scaffold_vsPtigris6 > Panthera_n5_vsPtigris_Scaffold6.fasta
+cat *Scaffold_vsPtigris7 > Panthera_n5_vsPtigris_Scaffold7.fasta
+cat *Scaffold_vsPtigris8 > Panthera_n5_vsPtigris_Scaffold8.fasta
+cat *Scaffold_vsPtigris9 > Panthera_n5_vsPtigris_Scaffold9.fasta
+cat *Scaffold_vsPtigris0 > Panthera_n5_vsPtigris_Scaffold0.fasta
+cat *Scaffold_vsPtigris10 > Panthera_n5_vsPtigris_Scaffold10.fasta
+cat *Scaffold_vsPtigris11 > Panthera_n5_vsPtigris_Scaffold11.fasta
+cat *Scaffold_vsPtigris12 > Panthera_n5_vsPtigris_Scaffold12.fasta
+cat *Scaffold_vsPtigris13 > Panthera_n5_vsPtigris_Scaffold13.fasta
+cat *Scaffold_vsPtigris14 > Panthera_n5_vsPtigris_Scaffold14.fasta
+cat *Scaffold_vsPtigris15 > Panthera_n5_vsPtigris_Scaffold15.fasta
+cat *Scaffold_vsPtigris16 > Panthera_n5_vsPtigris_Scaffold16.fasta
+cat *Scaffold_vsPtigris17 > Panthera_n5_vsPtigris_Scaffold17.fasta
+cat *Scaffold_vsPtigris18 > Panthera_n5_vsPtigris_Scaffold18.fasta
+
+##Run GERP on each scaffold alignment
+ml system gcc
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold0.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold10.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold11.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold12.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold13.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold14.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold15.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold16.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold17.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold18.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold19.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold1.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold20.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold21.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold22.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold23.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold24.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold25.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold26.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold2.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold3.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold4.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold5.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold6.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold7.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold8.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPtigris_Scaffold9.fasta -a -e Panthera_uncia-Panthera_leo-Panthera_pardus -v
+
+##Split each vcf up by scaffold:
+bgzip Amur_n5_lifted_over_c_rev.vcf
+bgzip Bengal_n5_lifted_over_c_rev.vcf
+bgzip Malayan_n5_lifted_over_c_rev.vcf
+bgzip Sumatran_n5_lifted_over_c_rev.vcf
+
+bcftools index  Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools index Bengal_n5_lifted_over_c_rev.vcf.gz
+bcftools index Malayan_n5_lifted_over_c_rev.vcf.gz
+bcftools index Sumatran_n5_lifted_over_c_rev.vcf.gz
+
+bcftools view -r CM031431.1  -Oz -o Amur_n5_scaffold0.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031432.1 -Oz -o Amur_n5_scaffold1.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031433.1 -Oz -o Amur_n5_scaffold2.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031434.1 -Oz -o Amur_n5_scaffold3.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031435.1 -Oz -o Amur_n5_scaffold4.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031436.1 -Oz -o Amur_n5_scaffold5.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031437.1 -Oz -o Amur_n5_scaffold6.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031438.1 -Oz -o Amur_n5_scaffold7.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031439.1 -Oz -o Amur_n5_scaffold8.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031440.1 -Oz -o Amur_n5_scaffold9.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031441.1 -Oz -o Amur_n5_scaffold10.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031442.1 -Oz -o Amur_n5_scaffold11.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031443.1 -Oz -o Amur_n5_scaffold12.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031444.1 -Oz -o Amur_n5_scaffold13.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031445.1 -Oz -o Amur_n5_scaffold14.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031446.1 -Oz -o Amur_n5_scaffold15.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031447.1 -Oz -o Amur_n5_scaffold16.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031448.1 -Oz -o Amur_n5_scaffold17.vcf.gz Amur_n5_lifted_over_c_rev.vcf.gz
+
+sed 's/Amur_n5_/Bengal_n5_/g' splitAmur.sh > split_Bengal.sh
+sed 's/Amur_n5_/Malayan_n5_/g' splitAmur.sh > split_Malayan.sh
+sed 's/Amur_n5_/Sumatran_n5_/g' splitAmur.sh > split_Sumatran.sh
+
+###Run Rscript (from https://star-protocols.cell.com/protocols/4202#bib2) to pull out only derived snps - makes one file per scaffold per sample
+##eample control file:
+../Tiger_VCF_by_Chrom/Amur_n5_scaffold0.vcf.gz
+../Panthera_n5_vsPtigris_Scaffold0.fasta.rates
+0
+Amur_n5_scaffold0_GERP_out
+8
+
+##run the R script:
+Rscript Derived_alleles_extract.R Amur_cont0.txt
+
+##add a column to each output file with the header "Chrom" and the scaffold ID to each row
+##example for scaffold9 for sample 1
+##this line must be run for each scaffold and each sample
+awk -F',' 'BEGIN {OFS=","} NR==1{$0=$0",Chrom"} NR>1{$0=$0",scaffold9"} 1' 1_Amur_n5_scaffold0_GERP_out.txt > 1_Amur_n5_scaffold0_GERP_out_edited.txt
+
+###concatenate all scaffolds for each sample
+
+cat 1_Amur_n5_scaffold*_GERP_out_edited.txt > 1_Amur_n5_GERP_out_AllScaffolds.txt
+cat 1_Bengal_n5_scaffold*_GERP_out_edited.txt > 1_Bengal_n5_GERP_out_AllScaffolds.txt
+cat 1_Malayan_n5_scaffold*_GERP_out_edited.txt > 1_Malayan_n5_GERP_out_AllScaffolds.txt
+cat 1_Sumatran_n5_scaffold*_GERP_out_edited.txt > 1_Sumatran_n5_GERP_out_AllScaffolds.txt
+cat 2_Amur_n5_scaffold*_GERP_out_edited.txt > 2_Amur_n5_GERP_out_AllScaffolds.txt
+cat 2_Bengal_n5_scaffold*_GERP_out_edited.txt > 2_Bengal_n5_GERP_out_AllScaffolds.txt
+cat 2_Malayan_n5_scaffold*_GERP_out_edited.txt > 2_Malayan_n5_GERP_out_AllScaffolds.txt
+cat 2_Sumatran_n5_scaffold*_GERP_out_edited.txt > 2_Sumatran_n5_GERP_out_AllScaffolds.txt
+cat 3_Amur_n5_scaffold*_GERP_out_edited.txt > 3_Amur_n5_GERP_out_AllScaffolds.txt
+cat 3_Bengal_n5_scaffold*_GERP_out_edited.txt > 3_Bengal_n5_GERP_out_AllScaffolds.txt
+cat 3_Malayan_n5_scaffold*_GERP_out_edited.txt > 3_Malayan_n5_GERP_out_AllScaffolds.txt
+cat 3_Sumatran_n5_scaffold*_GERP_out_edited.txt > 3_Sumatran_n5_GERP_out_AllScaffolds.txt
+cat 4_Amur_n5_scaffold*_GERP_out_edited.txt > 4_Amur_n5_GERP_out_AllScaffolds.txt
+cat 4_Bengal_n5_scaffold*_GERP_out_edited.txt > 4_Bengal_n5_GERP_out_AllScaffolds.txt
+cat 4_Malayan_n5_scaffold*_GERP_out_edited.txt > 4_Malayan_n5_GERP_out_AllScaffolds.txt
+cat 4_Sumatran_n5_scaffold*_GERP_out_edited.txt > 4_Sumatran_n5_GERP_out_AllScaffolds.txt
+cat 5_Amur_n5_scaffold*_GERP_out_edited.txt > 5_Amur_n5_GERP_out_AllScaffolds.txt
+cat 5_Bengal_n5_scaffold*_GERP_out_edited.txt > 5_Bengal_n5_GERP_out_AllScaffolds.txt
+cat 5_Malayan_n5_scaffold*_GERP_out_edited.txt > 5_Malayan_n5_GERP_out_AllScaffolds.txt
+cat 5_Sumatran_n5_scaffold*_GERP_out_edited.txt > 5_Sumatran_n5_GERP_out_AllScaffolds.txt
+
+
+###Remove header lines from concatenated files:
+
+grep -v "Pos" 1_Amur_n5_GERP_out_AllScaffolds.txt > 1_Amur_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 1_Bengal_n5_GERP_out_AllScaffolds.txt > 1_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 1_Malayan_n5_GERP_out_AllScaffolds.txt > 1_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 1_Sumatran_n5_GERP_out_AllScaffolds.txt > 1_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_Amur_n5_GERP_out_AllScaffolds.txt > 2_Amur_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_Bengal_n5_GERP_out_AllScaffolds.txt > 2_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_Malayan_n5_GERP_out_AllScaffolds.txt > 2_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_Sumatran_n5_GERP_out_AllScaffolds.txt > 2_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_Amur_n5_GERP_out_AllScaffolds.txt > 3_Amur_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_Bengal_n5_GERP_out_AllScaffolds.txt > 3_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_Malayan_n5_GERP_out_AllScaffolds.txt > 3_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_Sumatran_n5_GERP_out_AllScaffolds.txt > 3_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_Amur_n5_GERP_out_AllScaffolds.txt > 4_Amur_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_Bengal_n5_GERP_out_AllScaffolds.txt > 4_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_Malayan_n5_GERP_out_AllScaffolds.txt > 4_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_Sumatran_n5_GERP_out_AllScaffolds.txt > 4_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 5_Amur_n5_GERP_out_AllScaffolds.txt > 5_Amur_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 5_Bengal_n5_GERP_out_AllScaffolds.txt > 5_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 5_Malayan_n5_GERP_out_AllScaffolds.txt > 5_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 5_Sumatran_n5_GERP_out_AllScaffolds.txt > 5_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt
+
+
+##Pull out just chromosomes and positions and change file name back to actual sample names
+
+awk -F',' '{print $NF","$1}' 1_Amur_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647652_Amur_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13500746_Bengal_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647621_Malayan_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647577_Sumatran_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_Amur_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647654_Amur_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13500748_Bengal_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647627_Malayan_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647578_Sumatran_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_Amur_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209282_Amur_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13500752_Bengal_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209294_Malayan_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13647591_Sumatran_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_Amur_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209284_Amur_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13500756_Bengal_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209296_Malayan_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209305_Sumatran_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_Amur_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209286_Amur_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_Bengal_n5_GERP_out_AllScaffolds_noHeader.txt > SRR13500762_Bengal_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_Malayan_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209300_Malayan_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_Sumatran_n5_GERP_out_AllScaffolds_noHeader.txt > SRS8209313_Sumatran_n5_GERP_out_AllScaffolds_bed.txt
+
+###Change commas to tabs
+
+sed 's/,/\t/g' SRR13500746_Bengal_n5_GERP_out_AllScaffolds_bed.txt > SRR13500746_Bengal_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13500748_Bengal_n5_GERP_out_AllScaffolds_bed.txt > SRR13500748_Bengal_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13500752_Bengal_n5_GERP_out_AllScaffolds_bed.txt > SRR13500752_Bengal_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13500756_Bengal_n5_GERP_out_AllScaffolds_bed.txt > SRR13500756_Bengal_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13500762_Bengal_n5_GERP_out_AllScaffolds_bed.txt > SRR13500762_Bengal_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647577_Sumatran_n5_GERP_out_AllScaffolds_bed.txt > SRR13647577_Sumatran_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647578_Sumatran_n5_GERP_out_AllScaffolds_bed.txt > SRR13647578_Sumatran_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647591_Sumatran_n5_GERP_out_AllScaffolds_bed.txt > SRR13647591_Sumatran_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647621_Malayan_n5_GERP_out_AllScaffolds_bed.txt > SRR13647621_Malayan_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647627_Malayan_n5_GERP_out_AllScaffolds_bed.txt > SRR13647627_Malayan_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647652_Amur_n5_GERP_out_AllScaffolds_bed.txt > SRR13647652_Amur_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13647654_Amur_n5_GERP_out_AllScaffolds_bed.txt > SRR13647654_Amur_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209282_Amur_n5_GERP_out_AllScaffolds_bed.txt > SRS8209282_Amur_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209284_Amur_n5_GERP_out_AllScaffolds_bed.txt > SRS8209284_Amur_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209286_Amur_n5_GERP_out_AllScaffolds_bed.txt > SRS8209286_Amur_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209294_Malayan_n5_GERP_out_AllScaffolds_bed.txt > SRS8209294_Malayan_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209296_Malayan_n5_GERP_out_AllScaffolds_bed.txt > SRS8209296_Malayan_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209300_Malayan_n5_GERP_out_AllScaffolds_bed.txt > SRS8209300_Malayan_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209305_Sumatran_n5_GERP_out_AllScaffolds_bed.txt > SRS8209305_Sumatran_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRS8209313_Sumatran_n5_GERP_out_AllScaffolds_bed.txt > SRS8209313_Sumatran_n5_GERP_out_AllScaffolds.bed
+
+
+###rename chromosomes in bed file to match what it in vcf
+
+cat SRR13500746_Bengal_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13500746_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13500748_Bengal_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13500748_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13500752_Bengal_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13500752_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13500756_Bengal_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13500756_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13500762_Bengal_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13500762_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647577_Sumatran_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647577_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647578_Sumatran_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647578_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647591_Sumatran_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647591_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647621_Malayan_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647621_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647627_Malayan_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647627_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647652_Amur_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647652_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13647654_Amur_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRR13647654_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209282_Amur_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209282_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209284_Amur_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209284_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209286_Amur_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209286_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209294_Malayan_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209294_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209296_Malayan_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209296_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209300_Malayan_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209300_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209305_Sumatran_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209305_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRS8209313_Sumatran_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031431.1/g' | sed -e 's/scaffold17/CM031448.1/g' | sed -e 's/scaffold16/CM031447.1/g' | sed -e 's/scaffold15/CM031446.1/g' | sed -e 's/scaffold14/CM031445.1/g' | sed -e 's/scaffold13/CM031444.1/g' | sed -e 's/scaffold12/CM031443.1/g' | sed -e 's/scaffold11/CM031442.1/g' | sed -e 's/scaffold10/CM031441.1/g' | sed -e 's/scaffold9/CM031440.1/g' | sed -e 's/scaffold8/CM031439.1/g' | sed -e 's/scaffold7/CM031438.1/g' | sed -e 's/scaffold6/CM031437.1/g' | sed -e 's/scaffold5/CM031436.1/g' | sed -e 's/scaffold4/CM031435.1/g' | sed -e 's/scaffold3/CM031434.1/g' | sed -e 's/scaffold2/CM031433.1/g' | sed -e 's/scaffold1/CM031432.1/g'  > SRS8209313_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+
+###Split annotated vcf files (SNPeff output) into one file per individual
+##change chromosome names back first
+cat Tiger_Amur_n5_annoted_original.vcf | sed -e 's/NC_056660.1/CM031431.1/g' | sed -e 's/NC_056661.1/CM031432.1/g' | sed -e 's/NC_056662.1/CM031433.1/g' | sed -e 's/NC_056663.1/CM031434.1/g' | sed -e 's/NC_056664.1/CM031435.1/g' | sed -e 's/NC_056665.1/CM031436.1/g' | sed -e 's/NC_056666.1/CM031437.1/g' | sed -e 's/NC_056667.1/CM031438.1/g' | sed -e 's/NC_056668.1/CM031439.1/g' | sed -e 's/NC_056669.1/CM031440.1/g' | sed -e 's/NC_056670.1/CM031441.1/g' | sed -e 's/NC_056671.1/CM031442.1/g' | sed -e 's/NC_056672.1/CM031443.1/g' | sed -e 's/NC_056673.1/CM031444.1/g' | sed -e 's/NC_056674.1/CM031445.1/g' | sed -e 's/NC_056675.1/CM031446.1/g' | sed -e 's/NC_056676.1/CM031447.1/g' | sed -e 's/NC_056678.1/CM031448.1/g' > Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+cat Tiger_Bengal_n5_annoted_original.vcf | sed -e 's/NC_056660.1/CM031431.1/g' | sed -e 's/NC_056661.1/CM031432.1/g' | sed -e 's/NC_056662.1/CM031433.1/g' | sed -e 's/NC_056663.1/CM031434.1/g' | sed -e 's/NC_056664.1/CM031435.1/g' | sed -e 's/NC_056665.1/CM031436.1/g' | sed -e 's/NC_056666.1/CM031437.1/g' | sed -e 's/NC_056667.1/CM031438.1/g' | sed -e 's/NC_056668.1/CM031439.1/g' | sed -e 's/NC_056669.1/CM031440.1/g' | sed -e 's/NC_056670.1/CM031441.1/g' | sed -e 's/NC_056671.1/CM031442.1/g' | sed -e 's/NC_056672.1/CM031443.1/g' | sed -e 's/NC_056673.1/CM031444.1/g' | sed -e 's/NC_056674.1/CM031445.1/g' | sed -e 's/NC_056675.1/CM031446.1/g' | sed -e 's/NC_056676.1/CM031447.1/g' | sed -e 's/NC_056678.1/CM031448.1/g' > Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+cat Tiger_Malayan_n5_annoted_original.vcf | sed -e 's/NC_056660.1/CM031431.1/g' | sed -e 's/NC_056661.1/CM031432.1/g' | sed -e 's/NC_056662.1/CM031433.1/g' | sed -e 's/NC_056663.1/CM031434.1/g' | sed -e 's/NC_056664.1/CM031435.1/g' | sed -e 's/NC_056665.1/CM031436.1/g' | sed -e 's/NC_056666.1/CM031437.1/g' | sed -e 's/NC_056667.1/CM031438.1/g' | sed -e 's/NC_056668.1/CM031439.1/g' | sed -e 's/NC_056669.1/CM031440.1/g' | sed -e 's/NC_056670.1/CM031441.1/g' | sed -e 's/NC_056671.1/CM031442.1/g' | sed -e 's/NC_056672.1/CM031443.1/g' | sed -e 's/NC_056673.1/CM031444.1/g' | sed -e 's/NC_056674.1/CM031445.1/g' | sed -e 's/NC_056675.1/CM031446.1/g' | sed -e 's/NC_056676.1/CM031447.1/g' | sed -e 's/NC_056678.1/CM031448.1/g' > Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+cat Tiger_Sumatran_n5_annoted_original.vcf | sed -e 's/NC_056660.1/CM031431.1/g' | sed -e 's/NC_056661.1/CM031432.1/g' | sed -e 's/NC_056662.1/CM031433.1/g' | sed -e 's/NC_056663.1/CM031434.1/g' | sed -e 's/NC_056664.1/CM031435.1/g' | sed -e 's/NC_056665.1/CM031436.1/g' | sed -e 's/NC_056666.1/CM031437.1/g' | sed -e 's/NC_056667.1/CM031438.1/g' | sed -e 's/NC_056668.1/CM031439.1/g' | sed -e 's/NC_056669.1/CM031440.1/g' | sed -e 's/NC_056670.1/CM031441.1/g' | sed -e 's/NC_056671.1/CM031442.1/g' | sed -e 's/NC_056672.1/CM031443.1/g' | sed -e 's/NC_056673.1/CM031444.1/g' | sed -e 's/NC_056674.1/CM031445.1/g' | sed -e 's/NC_056675.1/CM031446.1/g' | sed -e 's/NC_056676.1/CM031447.1/g' | sed -e 's/NC_056678.1/CM031448.1/g' > Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+
+bcftools view -s SRR13647652 -o Tiger_Amur_n5_annoted_original_SRR13647652.vcf Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13647654 -o Tiger_Amur_n5_annoted_original_SRR13647654.vcf Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209282 -o Tiger_Amur_n5_annoted_original_SRS8209282.vcf Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209284 -o Tiger_Amur_n5_annoted_original_SRS8209284.vcf Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209286 -o Tiger_Amur_n5_annoted_original_SRS8209286.vcf Tiger_Amur_n5_annoted_original_CMchromNames.vcf
+
+bcftools view -s SRR13500746 -o Tiger_Bengal_n5_annoted_original_SRR13500746.vcf Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13500748 -o Tiger_Bengal_n5_annoted_original_SRR13500748.vcf Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13500752 -o Tiger_Bengal_n5_annoted_original_SRR13500752.vcf Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13500756 -o Tiger_Bengal_n5_annoted_original_SRR13500756.vcf Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13500762 -o Tiger_Bengal_n5_annoted_original_SRR13500762.vcf Tiger_Bengal_n5_annoted_original_CMchromNames.vcf
+
+bcftools view -s SRR13647621 -o Tiger_Malayan_n5_annoted_original_SRR13647621.vcf Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13647627 -o Tiger_Malayan_n5_annoted_original_SRR13647627.vcf Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209294 -o Tiger_Malayan_n5_annoted_original_SRS8209294.vcf Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209296 -o Tiger_Malayan_n5_annoted_original_SRS8209296.vcf Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209300 -o Tiger_Malayan_n5_annoted_original_SRS8209300.vcf Tiger_Malayan_n5_annoted_original_CMchromNames.vcf
+
+bcftools view -s SRR13647577 -o Tiger_Sumatran_n5_annoted_original_SRR13647577.vcf Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13647578 -o Tiger_Sumatran_n5_annoted_original_SRR13647578.vcf Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13647591 -o Tiger_Sumatran_n5_annoted_original_SRR13647591.vcf Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209305 -o Tiger_Sumatran_n5_annoted_original_SRS8209305.vcf Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+bcftools view -s SRS8209313 -o Tiger_Sumatran_n5_annoted_original_SRS8209313.vcf Tiger_Sumatran_n5_annoted_original_CMchromNames.vcf
+
+
+>>>change chromosome names in GERP output to match vcf
+cat Leopard_GERPout/ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+
+###Pull out only derived SNPs from each vcf using the bed file of derived sites
+grep -Ff Tiger_GERP_output/SRR13500746_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Bengal_n5_annoted_original_SRR13500746.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Bengal_n5_annoted_original_SRR13500746_derived.txt
+grep -Ff Tiger_GERP_output/SRR13500748_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Bengal_n5_annoted_original_SRR13500748.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Bengal_n5_annoted_original_SRR13500748_derived.txt
+grep -Ff Tiger_GERP_output/SRR13500752_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Bengal_n5_annoted_original_SRR13500752.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Bengal_n5_annoted_original_SRR13500752_derived.txt
+grep -Ff Tiger_GERP_output/SRR13500756_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Bengal_n5_annoted_original_SRR13500756.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Bengal_n5_annoted_original_SRR13500756_derived.txt
+grep -Ff Tiger_GERP_output/SRR13500762_Bengal_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Bengal_n5_annoted_original_SRR13500762.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Bengal_n5_annoted_original_SRR13500762_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647577_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Sumatran_n5_annoted_original_SRR13647577.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Sumatran_n5_annoted_original_SRR13647577_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647578_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Sumatran_n5_annoted_original_SRR13647578.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Sumatran_n5_annoted_original_SRR13647578_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647591_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Sumatran_n5_annoted_original_SRR13647591.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Sumatran_n5_annoted_original_SRR13647591_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647621_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Malayan_n5_annoted_original_SRR13647621.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Malayan_n5_annoted_original_SRR13647621_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647627_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Malayan_n5_annoted_original_SRR13647627.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Malayan_n5_annoted_original_SRR13647627_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647652_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Amur_n5_annoted_original_SRR13647652.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Amur_n5_annoted_original_SRR13647652_derived.txt
+grep -Ff Tiger_GERP_output/SRR13647654_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Amur_n5_annoted_original_SRR13647654.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Amur_n5_annoted_original_SRR13647654_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209282_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Amur_n5_annoted_original_SRS8209282.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Amur_n5_annoted_original_SRS8209282_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209284_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Amur_n5_annoted_original_SRS8209284.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Amur_n5_annoted_original_SRS8209284_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209286_Amur_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Amur_n5_annoted_original_SRS8209286.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Amur_n5_annoted_original_SRS8209286_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209294_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Malayan_n5_annoted_original_SRS8209294.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Malayan_n5_annoted_original_SRS8209294_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209296_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Malayan_n5_annoted_original_SRS8209296.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Malayan_n5_annoted_original_SRS8209296_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209300_Malayan_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Malayan_n5_annoted_original_SRS8209300.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Malayan_n5_annoted_original_SRS8209300_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209305_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Sumatran_n5_annoted_original_SRS8209305.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Sumatran_n5_annoted_original_SRS8209305_derived.txt
+grep -Ff Tiger_GERP_output/SRS8209313_Sumatran_n5_GERP_out_AllScaffolds_CHROMrenamed.bed Original_ANN_vcf_output/Tiger_Sumatran_n5_annoted_original_SRS8209313.vcf > Derived_vcf_perInd_OriginalANN_allSpecies/Tiger_Sumatran_n5_annoted_original_SRS8209313_derived.txt
+
+
+
