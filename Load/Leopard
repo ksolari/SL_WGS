@@ -1,0 +1,322 @@
+###Make new SnpEff database using leopard genome##
+
+## Edit config file to have leopard listed under '# Non-standard Databases' 
+nano snpEff.config 
+##Add - "Panthera_pardus.genome : Panthera_pardus"
+
+mkdir data/Panthera_pardus
+
+#copy the genome file to the 'genomes' folder and name it Panthera_pardus.fa'
+
+mv GCA_024362965.1_ASM2436296v1_genomic.fna /data/genomes/Panthera_pardus.fa
+
+#copy to the .gtf file to the 'Panthera_pardus' folder and name it 'genes.gtf'
+mv genomic.gtf /data/Panthera_pardus/genes.gtf
+
+#copy to the protein fasta file to the 'Panthera_pardus' folder and name it 'protein.fa'
+mv protein.faa /data/Panthera_pardus/protein.fa
+
+##rename the scaffolds in the fasta file to match the annotation files:
+cat Panthera_pardus_original.fa | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Panthera_pardus.fa
+
+##only retain the largest scaffolds
+samtools faidx Panthera_pardus.fa -r Ppardus_chrom.txt  > Panthera_pardus_chromosomes.fa
+
+##Make the snpeff database using the .gtf file and use the protein.fa to check it:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar build -gtf22 -v Panthera_pardus -noCheckCds
+
+###rename scaffolds in vcfs to match annotations
+cat ../../../Panthera/PantheraHet/AsianLeopard/AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall.recode.vcf | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf
+
+cat ../../../Panthera/PantheraHet/AfricanLeopard/AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall.recode.vcf | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf
+
+##Run SNPeff on each vcf:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar Panthera_pardus AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf > AsianLeopard_n4_annotated.vcf
+
+java -Xmx4g -jar snpEff.jar Panthera_pardus AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf > AfricanLeopard_n5_annotated.vcf
+
+###GERP:
+##make Control.tsv file with list of genomes and species names
+
+GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna        Panthera_tigris
+GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna   Panthera_leo
+GCA_023721935.1_Puncia_PCG_1.0_genomic.fna	Panthera_uncia
+GCA_024362965.1_ASM2436296v1_genomic.fna        Panthera_pardus
+GCA_028533385.1_Panthera_onca_HiC_genomic.fna   Panthera_onca
+
+
+# Index the FASTA file (only needs to be done once)
+samtools faidx GCA_024362965.1_ASM2436296v1_genomic.fna
+
+# Extract specific scaffolds (replace with your desired IDs)
+samtools faidx GCA_024362965.1_ASM2436296v1_genomic.fna JANFAR010000001.1 JANFAR010000002.1 JANFAR010000003.1 JANFAR010000004.1 JANFAR010000005.1 JANFAR010000006.1 JANFAR010000007.1 JANFAR010000008.1 JANFAR010000009.1 JANFAR010000010.1 JANFAR010000011.1 JANFAR010000012.1 JANFAR010000013.1 JANFAR010000014.1 JANFAR010000015.1 JANFAR010000016.1 JANFAR010000017.1 JANFAR010000018.1 JANFAR010000019.1 JANFAR010000020.1 JANFAR010000021.1 JANFAR010000022.1 JANFAR010000023.1 JANFAR010000024.1 JANFAR010000025.1 JANFAR010000026.1 JANFAR010000027.1 >  GCA_024362965.1_ASM2436296v1_genomic_chromosomes.fna
+
+##edit Pipeline_input_alignment_GERP.sh as described in - https://star-protocols.cell.com/protocols/4202#bib2
+##and some minor changes to increase specificity -  changed 'bwa mem -B 4' from 3;  'samtools view -bq 4' from 2
+##run script:
+ml biology bwa
+ml biology samtools
+ml biology bcftools
+bash Pipeline_input_alignment_GERP_Leopard.sh
+
+###use htsbox to generate consensus sequences for each species using bam files generated by this script 
+##NOTE this is different from what is scribed in the star protocol but follows what is described in the Current Biology manuscript (https://www.sciencedirect.com/science/article/pii/S0960982224001441#fig4)
+
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_024362965.1_ASM2436296v1_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_leo/Panthera_leo_filtered_sorted.bam > Panthera_leo_filtered_sorted_concenus_vsPpardus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_024362965.1_ASM2436296v1_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_onca/Panthera_onca_filtered_sorted.bam > Panthera_onca_filtered_sorted_concenus_vsPpardus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_024362965.1_ASM2436296v1_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_pardus/Panthera_pardus_filtered_sorted.bam > Panthera_pardus_filtered_sorted_concenus_vsPpardus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_024362965.1_ASM2436296v1_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_tigris/Panthera_tigris_filtered_sorted.bam > Panthera_tigris_filtered_sorted_concenus_vsPpardus.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_024362965.1_ASM2436296v1_genomic.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_uncia/Panthera_uncia_filtered_sorted.bam > Panthera_uncia_filtered_sorted_concenus_vsPpardus.fasta
+
+##split each consensus fasta into scaffolds:
+csplit -s -n 1 --prefix=Panthera_leo_Scaffold_vsPpardus -z Panthera_leo_filtered_sorted_concenus_vsPpardus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_pardus_Scaffold_vsPpardus -z  Panthera_pardus_filtered_sorted_concenus_vsPpardus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_tigris_Scaffold_vsPpardus -z  Panthera_tigris_filtered_sorted_concenus_vsPpardus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_uncia_Scaffold_vsPpardus -z Panthera_uncia_filtered_sorted_concenus_vsPpardus.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_onca_Scaffold_vsPpardus -z Panthera_onca_filtered_sorted_concenus_vsPpardus.fasta '/>/' '{*}'
+
+##Change the header of each fasta file to be the species name
+ls Panthera_tigris_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_tigris/"
+ls Panthera_onca_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_onca/"
+ls Panthera_pardus_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_pardus/"
+ls Panthera_leo_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_leo/"
+ls Panthera_uncia_Scaffold* |   xargs -n1 sed -i "1s/.*/>Panthera_uncia/"
+
+##concatenate sequences to make one alignment file for each scaffold that includes all 5 Panthera species
+cat *Scaffold_vsPpardus1 > Panthera_n5_vsPpardus_Scaffold1.fasta
+cat *Scaffold_vsPpardus2 > Panthera_n5_vsPpardus_Scaffold2.fasta
+cat *Scaffold_vsPpardus3 > Panthera_n5_vsPpardus_Scaffold3.fasta
+cat *Scaffold_vsPpardus4 > Panthera_n5_vsPpardus_Scaffold4.fasta
+cat *Scaffold_vsPpardus5 > Panthera_n5_vsPpardus_Scaffold5.fasta
+cat *Scaffold_vsPpardus6 > Panthera_n5_vsPpardus_Scaffold6.fasta
+cat *Scaffold_vsPpardus7 > Panthera_n5_vsPpardus_Scaffold7.fasta
+cat *Scaffold_vsPpardus8 > Panthera_n5_vsPpardus_Scaffold8.fasta
+cat *Scaffold_vsPpardus9 > Panthera_n5_vsPpardus_Scaffold9.fasta
+cat *Scaffold_vsPpardus0 > Panthera_n5_vsPpardus_Scaffold0.fasta
+cat *Scaffold_vsPpardus10 > Panthera_n5_vsPpardus_Scaffold10.fasta
+cat *Scaffold_vsPpardus11 > Panthera_n5_vsPpardus_Scaffold11.fasta
+cat *Scaffold_vsPpardus12 > Panthera_n5_vsPpardus_Scaffold12.fasta
+cat *Scaffold_vsPpardus13 > Panthera_n5_vsPpardus_Scaffold13.fasta
+cat *Scaffold_vsPpardus14 > Panthera_n5_vsPpardus_Scaffold14.fasta
+cat *Scaffold_vsPpardus15 > Panthera_n5_vsPpardus_Scaffold15.fasta
+cat *Scaffold_vsPpardus16 > Panthera_n5_vsPpardus_Scaffold16.fasta
+cat *Scaffold_vsPpardus17 > Panthera_n5_vsPpardus_Scaffold17.fasta
+cat *Scaffold_vsPpardus18 > Panthera_n5_vsPpardus_Scaffold18.fasta
+cat *Scaffold_vsPpardus19 > Panthera_n5_vsPpardus_Scaffold19.fasta
+cat *Scaffold_vsPpardus20 > Panthera_n5_vsPpardus_Scaffold20.fasta
+cat *Scaffold_vsPpardus21 > Panthera_n5_vsPpardus_Scaffold21.fasta
+cat *Scaffold_vsPpardus22 > Panthera_n5_vsPpardus_Scaffold22.fasta
+cat *Scaffold_vsPpardus23 > Panthera_n5_vsPpardus_Scaffold23.fasta
+cat *Scaffold_vsPpardus24 > Panthera_n5_vsPpardus_Scaffold24.fasta
+cat *Scaffold_vsPpardus25 > Panthera_n5_vsPpardus_Scaffold25.fasta
+cat *Scaffold_vsPpardus26 > Panthera_n5_vsPpardus_Scaffold26.fasta
+
+##Run GERP on each scaffold alignment
+ml system gcc
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold0.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold10.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold11.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold12.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold13.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold14.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold15.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold16.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold17.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold18.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold19.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold1.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold20.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold21.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold22.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold23.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold24.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold25.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold26.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold2.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold3.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold4.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold5.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold6.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold7.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold8.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPpardus_Scaffold9.fasta -a -e Panthera_leo-Panthera_uncia-Panthera_tigris -v
+
+###Run Rscript (from https://star-protocols.cell.com/protocols/4202#bib2) to pull out only derived snps - makes one file per scaffold per sample
+# Example control file
+../Leopard_vcf_byChrom/AsianLeop_n4_scaffold0.vcf.gz
+../Panthera_n5_vsPpardus_Scaffold0.fasta.rates
+0
+../Leopard_GERPout/AsianLeop_n4_scaffold0_GERP_out
+8
+
+##run the R script:
+Rscript Derived_alleles_extract.R AS_Control0.txt
+
+
+###go back to the original vcf file and seperate it by scaffold 
+bgzip AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf
+bgzip AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf
+bcftools index AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools index AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+
+bcftools view -r NW_026526654.1 -Oz -o AfricanLeop_n5_scaffold0.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526765.1 -Oz -o AfricanLeop_n5_scaffold1.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526876.1 -Oz -o AfricanLeop_n5_scaffold2.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526969.1 -Oz -o AfricanLeop_n5_scaffold3.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526980.1 -Oz -o AfricanLeop_n5_scaffold4.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526991.1 -Oz -o AfricanLeop_n5_scaffold5.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527002.1 -Oz -o AfricanLeop_n5_scaffold6.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527013.1 -Oz -o AfricanLeop_n5_scaffold7.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527024.1 -Oz -o AfricanLeop_n5_scaffold8.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526655.1 -Oz -o AfricanLeop_n5_scaffold9.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526666.1 -Oz -o AfricanLeop_n5_scaffold10.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526677.1 -Oz -o AfricanLeop_n5_scaffold11.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526688.1 -Oz -o AfricanLeop_n5_scaffold12.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526699.1 -Oz -o AfricanLeop_n5_scaffold13.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526710.1 -Oz -o AfricanLeop_n5_scaffold14.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526721.1 -Oz -o AfricanLeop_n5_scaffold15.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526732.1 -Oz -o AfricanLeop_n5_scaffold16.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526743.1 -Oz -o AfricanLeop_n5_scaffold17.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526754.1 -Oz -o AfricanLeop_n5_scaffold18.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526766.1 -Oz -o AfricanLeop_n5_scaffold19.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526777.1 -Oz -o AfricanLeop_n5_scaffold20.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526788.1 -Oz -o AfricanLeop_n5_scaffold21.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526799.1 -Oz -o AfricanLeop_n5_scaffold22.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526810.1 -Oz -o AfricanLeop_n5_scaffold23.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526821.1 -Oz -o AfricanLeop_n5_scaffold24.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526832.1 -Oz -o AfricanLeop_n5_scaffold25.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526843.1 -Oz -o AfricanLeop_n5_scaffold26.vcf.gz AfricanLeop_n5_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+
+bcftools view -r NW_026526654.1 -Oz -o AsianLeop_n4_scaffold0.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526765.1 -Oz -o AsianLeop_n4_scaffold1.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526876.1 -Oz -o AsianLeop_n4_scaffold2.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526969.1 -Oz -o AsianLeop_n4_scaffold3.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526980.1 -Oz -o AsianLeop_n4_scaffold4.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526991.1 -Oz -o AsianLeop_n4_scaffold5.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527002.1 -Oz -o AsianLeop_n4_scaffold6.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527013.1 -Oz -o AsianLeop_n4_scaffold7.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026527024.1 -Oz -o AsianLeop_n4_scaffold8.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526655.1 -Oz -o AsianLeop_n4_scaffold9.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526666.1 -Oz -o AsianLeop_n4_scaffold10.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526677.1 -Oz -o AsianLeop_n4_scaffold11.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526688.1 -Oz -o AsianLeop_n4_scaffold12.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526699.1 -Oz -o AsianLeop_n4_scaffold13.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526710.1 -Oz -o AsianLeop_n4_scaffold14.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526721.1 -Oz -o AsianLeop_n4_scaffold15.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526732.1 -Oz -o AsianLeop_n4_scaffold16.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526743.1 -Oz -o AsianLeop_n4_scaffold17.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526754.1 -Oz -o AsianLeop_n4_scaffold18.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526766.1 -Oz -o AsianLeop_n4_scaffold19.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526777.1 -Oz -o AsianLeop_n4_scaffold20.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526788.1 -Oz -o AsianLeop_n4_scaffold21.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526799.1 -Oz -o AsianLeop_n4_scaffold22.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526810.1 -Oz -o AsianLeop_n4_scaffold23.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526821.1 -Oz -o AsianLeop_n4_scaffold24.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526832.1 -Oz -o AsianLeop_n4_scaffold25.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+bcftools view -r NW_026526843.1 -Oz -o AsianLeop_n4_scaffold26.vcf.gz AsianLeop_n4_ALLcontigs_sorted_map100_filtered_pass_noIndel_biall_ChromRenamed.vcf.gz
+
+##add a column to each output file with the header "Chrom" and the scaffold ID to each row
+##example for scaffold9 for sample 1
+##this line must be run for each scaffold and each sample
+awk -F',' 'BEGIN {OFS=","} NR==1{$0=$0",Chrom"} NR>1{$0=$0",scaffold9"} 1' 1_AsianLeop_n4_scaffold0_GERP_out.txt > 1_AsianLeop_n4_scaffold0_GERP_out_edited.txt
+
+###concatenate all scaffolds for each sample
+
+cat 1_AfricanLeop_n5_scaffold*_GERP_out_edited.txt > 1_AfricanLeop_n5_GERP_out_AllScaffolds.txt
+cat 1_AsianLeop_n4_scaffold*_GERP_out_edited.txt > 1_AsianLeop_n4_GERP_out_AllScaffolds.txt
+cat 2_AfricanLeop_n5_scaffold*_GERP_out_edited.txt > 2_AfricanLeop_n5_GERP_out_AllScaffolds.txt
+cat 2_AsianLeop_n4_scaffold*_GERP_out_edited.txt > 2_AsianLeop_n4_GERP_out_AllScaffolds.txt
+cat 3_AfricanLeop_n5_scaffold*_GERP_out_edited.txt > 3_AfricanLeop_n5_GERP_out_AllScaffolds.txt
+cat 3_AsianLeop_n4_scaffold*_GERP_out_edited.txt > 3_AsianLeop_n4_GERP_out_AllScaffolds.txt
+cat 4_AfricanLeop_n5_scaffold*_GERP_out_edited.txt > 4_AfricanLeop_n5_GERP_out_AllScaffolds.txt
+cat 4_AsianLeop_n4_scaffold*_GERP_out_edited.txt > 4_AsianLeop_n4_GERP_out_AllScaffolds.txt
+cat 5_AfricanLeop_n5_scaffold*_GERP_out_edited.txt > 5_AfricanLeop_n5_GERP_out_AllScaffolds.txt
+
+
+###Remove header lines from concatenated files:
+
+grep -v "Pos" 1_AfricanLeop_n5_GERP_out_AllScaffolds.txt > 1_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 1_AsianLeop_n4_GERP_out_AllScaffolds.txt > 1_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_AfricanLeop_n5_GERP_out_AllScaffolds.txt > 2_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_AsianLeop_n4_GERP_out_AllScaffolds.txt > 2_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_AfricanLeop_n5_GERP_out_AllScaffolds.txt > 3_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_AsianLeop_n4_GERP_out_AllScaffolds.txt > 3_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_AfricanLeop_n5_GERP_out_AllScaffolds.txt > 4_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_AsianLeop_n4_GERP_out_AllScaffolds.txt > 4_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 5_AfricanLeop_n5_GERP_out_AllScaffolds.txt > 5_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt
+
+
+##Pull out just chromosomes and positions and change file name back to actual sample names
+
+awk -F',' '{print $NF","$1}' 1_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt > ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 1_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt > ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt > ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt > ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt > ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt > ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt > ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_AsianLeop_n4_GERP_out_AllScaffolds_noHeader.txt > ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 5_AfricanLeop_n5_GERP_out_AllScaffolds_noHeader.txt > ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt
+
+
+###Change commas to tabs
+
+sed 's/,/\t/g' ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt > ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt > ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt > ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt > ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt > ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt > ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt > ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_.bed
+sed 's/,/\t/g' ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_bed.txt > ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_bed.txt > ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds.bed
+
+###rename chromosomes in bed file to match what it in vcf
+
+cat ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+cat ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed
+
+cat ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/JANFAR010000001.1/g' | sed -e 's/scaffold26/JANFAR010000027.1/g' | sed -e 's/scaffold24/JANFAR0100000025.1/g' | sed -e 's/scaffold25/JANFAR010000026.1/g' | sed -e 's/scaffold23/JANFAR010000024.1/g' | sed -e 's/scaffold22/JANFAR010000023.1/g' | sed -e 's/scaffold21/JANFAR010000022.1/g' | sed -e 's/scaffold20/JANFAR010000021.1/g' | sed -e 's/scaffold19/JANFAR010000020.1/g' | sed -e 's/scaffold18/JANFAR010000019.1/g' | sed -e 's/scaffold17/JANFAR010000018.1/g' | sed -e 's/scaffold16/JANFAR010000017.1/g' | sed -e 's/scaffold15/JANFAR010000016.1/g' | sed -e 's/scaffold14/JANFAR010000015.1/g' | sed -e 's/scaffold13/JANFAR010000014.1/g' | sed -e 's/scaffold12/JANFAR010000013.1/g' | sed -e 's/scaffold11/JANFAR010000012.1/g' | sed -e 's/scaffold10/JANFAR010000011.1/g' | sed -e 's/scaffold9/JANFAR010000010.1/g' | sed -e 's/scaffold8/JANFAR010000009.1/g' | sed -e 's/scaffold7/JANFAR010000008.1/g' | sed -e 's/scaffold6/JANFAR010000007.1/g' | sed -e 's/scaffold5/JANFAR010000006.1/g' | sed -e 's/scaffold4/JANFAR010000005.1/g' | sed -e 's/scaffold3/JANFAR010000004.1/g' | sed -e 's/scaffold2/JANFAR010000003.1/g' | sed -e 's/scaffold1/JANFAR010000002.1/g'  > ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed
+
+###Split annotated vcf files (SNPeff output) into one file per individual
+ml biology bcftools
+bcftools view -s ERR5671299 -o AfricanLeopard_n5_annotated_ERR5671299.vcf AfricanLeopard_n5_annotated.vcf
+bcftools view -s ERR5671307 -o AfricanLeopard_n5_annotated_ERR5671307.vcf AfricanLeopard_n5_annotated.vcf
+bcftools view -s ERR5671308 -o AfricanLeopard_n5_annotated_ERR5671308.vcf AfricanLeopard_n5_annotated.vcf
+bcftools view -s ERR5671314 -o AfricanLeopard_n5_annotated_ERR5671314.vcf AfricanLeopard_n5_annotated.vcf
+bcftools view -s ERR5671315 -o AfricanLeopard_n5_annotated_ERR5671315.vcf AfricanLeopard_n5_annotated.vcf
+bcftools view -s ERR5671303 -o AsianLeopard_n4_annotated_ERR5671303.vcf AsianLeopard_n4_annotated.vcf
+bcftools view -s ERR5671311 -o AsianLeopard_n4_annotated_ERR5671311.vcf AsianLeopard_n4_annotated.vcf
+bcftools view -s ERR5671313 -o AsianLeopard_n4_annotated_ERR5671313.vcf AsianLeopard_n4_annotated.vcf
+bcftools view -s ERR5671323 -o AsianLeopard_n4_annotated_ERR5671323.vcf AsianLeopard_n4_annotated.vcf
+
+>>>change chromosome names in GERP output to match vcf
+cat Leopard_GERPout/ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed
+cat Leopard_GERPout/ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamed.bed | sed -e 's/JANFAR010000001.1/NW_026526654.1/g' | sed -e 's/JANFAR010000002.1/NW_026526765.1/g' | sed -e 's/JANFAR010000003.1/NW_026526876.1/g' | sed -e 's/JANFAR010000004.1/NW_026526969.1/g' | sed -e 's/JANFAR010000005.1/NW_026526980.1/g' | sed -e 's/JANFAR010000006.1/NW_026526991.1/g' | sed -e 's/JANFAR010000007.1/NW_026527002.1/g' | sed -e 's/JANFAR010000013.1/NW_026526688.1/g' | sed -e 's/JANFAR010000008.1/NW_026527013.1/g' | sed -e 's/JANFAR010000009.1/NW_026527024.1/g' | sed -e 's/JANFAR010000010.1/NW_026526655.1/g' | sed -e 's/JANFAR010000011.1/NW_026526666.1/g' | sed -e 's/JANFAR010000012.1/NW_026526677.1/g' | sed -e 's/JANFAR010000014.1/NW_026526699.1/g' | sed -e 's/JANFAR010000015.1/NW_026526710.1/g' | sed -e 's/JANFAR010000016.1/NW_026526721.1/g' | sed -e 's/JANFAR010000017.1/NW_026526732.1/g' | sed -e 's/JANFAR010000018.1/NW_026526743.1/g' | sed -e 's/JANFAR010000019.1/NW_026526754.1/g' | sed -e 's/JANFAR010000020.1/NW_026526766.1/g' | sed -e 's/JANFAR010000021.1/NW_026526777.1/g' | sed -e 's/JANFAR010000022.1/NW_026526788.1/g' | sed -e 's/JANFAR010000027.1/NW_026526843.1/g' | sed -e 's/JANFAR010000023.1/NW_026526799.1/g' | sed -e 's/JANFAR010000024.1/NW_026526810.1/g' | sed -e 's/JANFAR010000025.1/NW_026526821.1/g' | sed -e 's/JANFAR010000026.1/NW_026526832.1/g' > Leopard_GERPout/ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed
+
+###Pull out only derived SNPs from each vcf using the bed file of derived sites
+grep -Ff Leopard_GERPout/ERR5671299_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AfricanLeopard_n5_annotated_ERR5671299.vcf > Leopard_Derived_vcf_perInd/AfricanLeopard_n5_annotated_ERR5671299_derived.txt
+grep -Ff Leopard_GERPout/ERR5671303_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AsianLeopard_n4_annotated_ERR5671303.vcf > Leopard_Derived_vcf_perInd/AsianLeopard_n4_annotated_ERR5671303_derived.txt
+grep -Ff Leopard_GERPout/ERR5671307_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AfricanLeopard_n5_annotated_ERR5671307.vcf > Leopard_Derived_vcf_perInd/AfricanLeopard_n5_annotated_ERR5671307_derived.txt
+grep -Ff Leopard_GERPout/ERR5671308_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AfricanLeopard_n5_annotated_ERR5671308.vcf > Leopard_Derived_vcf_perInd/AfricanLeopard_n5_annotated_ERR5671308_derived.txt
+grep -Ff Leopard_GERPout/ERR5671311_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AsianLeopard_n4_annotated_ERR5671311.vcf > Leopard_Derived_vcf_perInd/AsianLeopard_n4_annotated_ERR5671311_derived.txt
+grep -Ff Leopard_GERPout/ERR5671313_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AsianLeopard_n4_annotated_ERR5671313.vcf > Leopard_Derived_vcf_perInd/AsianLeopard_n4_annotated_ERR5671313_derived.txt
+grep -Ff Leopard_GERPout/ERR5671315_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AfricanLeopard_n5_annotated_ERR5671315.vcf > Leopard_Derived_vcf_perInd/AfricanLeopard_n5_annotated_ERR5671315_derived.txt
+grep -Ff Leopard_GERPout/ERR5671323_AsianLeop_n4_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AsianLeopard_n4_annotated_ERR5671323.vcf > Leopard_Derived_vcf_perInd/AsianLeopard_n4_annotated_ERR5671323_derived.txt
+grep -Ff Leopard_GERPout/ERR5671314_AfricanLeop_n5_GERP_out_AllScaffolds_CHROMrenamedB.bed snpeff/snpEff/AfricanLeopard_n5_annotated_ERR5671314.vcf > Leopard_Derived_vcf_perInd/AfricanLeopard_n5_annotated_ERR5671314_derived.txt
+
