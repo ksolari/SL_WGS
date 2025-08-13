@@ -1,0 +1,225 @@
+###Liftover our SNP calls to annotated reference genome
+##Original fasta - GCA_008795835.1_PanLeo1.0_genomic.fna
+##Annoted fasta - GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna
+##vcf - Lion_n4_map100_filtered_pass_noIndel_biall.recode.vcf
+
+## Make pairwise alignment between both reference genomes
+./minimap2 -c ../../../Panthera/PantheraHet/Lion/GCA_008795835.1_PanLeo1.0_genomic.fna ../../PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna -t 8 > aln_lion_GCA_008795835_GCA_018350215_c_reverse.paf
+
+##create chain file
+paf2chain -i aln_lion_GCA_008795835_GCA_018350215_c_reverse.paf > aln_lion_GCA_008795835_GCA_018350215_c_reverse.chain
+
+##create dictionary for annoated reference genome
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar CreateSequenceDictionary R=../PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna O=../PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.dict
+
+##Liftover
+java -jar /oak/stanford/groups/dpetrov/armstrong/applications/picard.jar LiftoverVcf I=../../Panthera/PantheraHet/Lion/LionMapped2Lion/Lion_n4_map100_filtered_pass_noIndel_biall.recode.vcf O=Lion_n4_lifted_over_c_rev.vcf CHAIN=aln_lion_GCA_008795835_GCA_018350215_c_reverse.chain REJECT=Lion_n4_rejected_variants_c_rev.vcf R=../PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna
+
+###Make new SNPeff database using annotated tiger genome##
+
+## Edit config file to have lion listed under '# Non-standard Databases' 
+nano snpEff.config 
+
+##add "Panthera_leo.genome : Panthera_leo"
+
+mkdir data/Panthera_leo
+
+#copy the genome file to the 'genomes' folder and name it ‘Panthera_leo.fa'
+
+mv ncbi_dataset/data/GCA_018350215.1/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna /data/genomes/Panthera_leo.fa
+
+#copy to the .gtf file to the Panthera_leo folder and name it 'genes.gtf'
+mv ncbi_dataset/data/GCF_018350215.1/genomic.gtf /data/Panthera_leo/genes.gtf
+
+#copy to the protein fasta file to the Panthera_leo folder and name it 'protein.fa'
+mv ncbi_dataset/data/GCF_018350215.1/protein.faa /data/Panthera_leo/protein.fa
+
+##Make the snpeff database using the .gtf file and use the protein.fa to check it:
+ml system java/21.0.4
+java -Xmx4g -jar snpEff.jar build -gtf22 -v Panthera_leo -noCheckCds
+
+##change vcf scaffold names to names used to make database
+cat Lion_n4_lifted_over_c_rev.vcf | sed -e 's/CM031450.1/NC_056679.1/g' | sed -e 's/CM031451.1/NC_056680.1/g' | sed -e 's/CM031452.1/NC_056681.1/g' | sed -e 's/CM031453.1/NC_056682.1/g' | sed -e 's/CM031454.1/NC_056683.1/g' | sed -e 's/CM031455.1/NC_056684.1/g' | sed -e 's/CM031456.1/NC_056685.1/g' | sed -e 's/CM031457.1/NC_056686.1/g' | sed -e 's/CM031458.1/NC_056687.1/g' | sed -e 's/CM031459.1/NC_056688.1/g' | sed -e 's/CM031460.1/NC_056689.1/g' | sed -e 's/CM031461.1/NC_056690.1/g' | sed -e 's/CM031462.1/NC_056691.1/g' | sed -e 's/CM031463.1/NC_056692.1/g' | sed -e 's/CM031464.1/NC_056693.1/g' | sed -e 's/CM031465.1/NC_056694.1/g' | sed -e 's/CM031466.1/NC_056695.1/g' | sed -e 's/CM031467.1/NC_056696.1/g' | sed -e 's/CM031449.1/NC_056697.1/g' | sed -e 's/JAEQMX010000039.1/NW_024962231.1/g' | sed -e 's/JAEQMX010000049.1/NW_024962216.1/g' | sed -e 's/JAEQMX010000050.1/NW_024962220.1/g' | sed -e 's/JAEQMX010000051.1/NW_024962246.1/g' | sed -e 's/JAEQMX010000062.1/NW_024962217.1/g' | sed -e 's/JAEQMX010000071.1/NW_024962248.1/g' | sed -e 's/JAEQMX010000076.1/NW_024962249.1/g' | sed -e 's/JAEQMX010000087.1/NW_024962234.1/g' | sed -e 's/JAEQMX010000093.1/NW_024962240.1/g' > Lion_n4_lifted_over_c_rev_NCchromNames.vcf
+
+##runs SnpEff on vcf:
+java -Xmx4g -jar snpEff.jar -stats Lion_n4_original_stats.html Panthera_leo Lion_n4_lifted_over_c_rev_NCchromNames.vcf > Lion_n4_annoted_original.vcf
+
+###GERP:
+# Index the FASTA file 
+samtools faidx GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna
+
+# Extract specific scaffolds
+samtools faidx GCA_018350215.1_P.leo_Ple1_pat1.1_genomic.fna CM031450.1 CM031451.1 CM031452.1 CM031453.1 CM031454.1 CM031455.1 CM031456.1 CM031457.1 CM031458.1 CM031459.1 CM031460.1 CM031461.1 CM031462.1 CM031463.1 CM031464.1 CM031465.1 CM031466.1 CM031467.1 > GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna
+
+##make Control.tsv file with list of genomes and species names
+
+GCA_018350195.2_P.tigris_Pti1_mat1.1_genomic.fna        Panthera_tigris
+GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna   Panthera_leo
+GCA_023721935.1_Puncia_PCG_1.0_genomic.fna	Panthera_uncia
+GCA_024362965.1_ASM2436296v1_genomic.fna        Panthera_pardus
+GCA_028533385.1_Panthera_onca_HiC_genomic.fna   Panthera_onca
+
+
+##edit Pipeline_input_alignment_GERP.sh as discribed in - https://star-protocols.cell.com/protocols/4202#bib2
+##and some minor changes to increase specificity -  changed 'bwa mem -B 4' from 3;  'samtools view -bq 4' from 2
+##run script:
+ml biology bwa
+ml biology samtools
+ml biology bcftools
+bash Pipeline_input_alignment_GERP_lion.sh
+
+###use htsbox to generate consensus sequences for each species using bam files generated by this script 
+##NOTE this is different from what is scribed in the star protocol but follows what is described in the Current Biology manuscript (https://www.sciencedirect.com/science/article/pii/S0960982224001441#fig4)
+
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_leo/Panthera_leo_filtered_sorted.bam > Panthera_leo_filtered_sorted_concenus_vsPleo.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_onca/Panthera_onca_filtered_sorted.bam > Panthera_onca_filtered_sorted_concenus_vsPleo.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_pardus/Panthera_pardus_filtered_sorted.bam > Panthera_pardus_filtered_sorted_concenus_vsPleo.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_tigris/Panthera_tigris_filtered_sorted.bam > Panthera_tigris_filtered_sorted_concenus_vsPleo.fasta
+./htsbox-lite/htsbox pileup -f PantheraRefGenomes/GCA_018350215.1_P.leo_Ple1_pat1.1_genomic_chromosomes.fna -R -Q30 -q30 -l 35 -s 1 PantheraRefGenomes/Panthera_uncia/Panthera_uncia_filtered_sorted.bam > Panthera_uncia_filtered_sorted_concenus_vsPleo.fasta
+
+##split each consensus fasta into scaffolds:
+csplit -s -n 1 --prefix=Panthera_leo_Scaffold_vsPleo -z Panthera_leo_filtered_sorted_concenus_vsPleo.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_pardus_Scaffold_vsPleo -z  Panthera_pardus_filtered_sorted_concenus_vsPleo.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_tigris_Scaffold_vsPleo -z  Panthera_tigris_filtered_sorted_concenus_vsPleo.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_uncia_Scaffold_vsPleo -z Panthera_uncia_filtered_sorted_concenus_vsPleo.fasta '/>/' '{*}'
+csplit -s -n 1 --prefix=Panthera_onca_Scaffold_vsPleo -z Panthera_onca_filtered_sorted_concenus_vsPleo.fasta '/>/' '{*}'
+
+##Change the header of each fasta file to be the species name
+ls Panthera_tigris_Scaffold_vsPleo* |   xargs -n1 sed -i "1s/.*/>Panthera_tigris/"
+ls Panthera_onca_Scaffold_vsPleo* |   xargs -n1 sed -i "1s/.*/>Panthera_onca/"
+ls Panthera_pardus_Scaffold_vsPleo* |   xargs -n1 sed -i "1s/.*/>Panthera_pardus/"
+ls Panthera_leo_Scaffold_vsPleo* |   xargs -n1 sed -i "1s/.*/>Panthera_leo/"
+ls Panthera_uncia_Scaffold_vsPleo* |   xargs -n1 sed -i "1s/.*/>Panthera_uncia/"
+
+##concatenate sequences to make one alignment file for each scaffold that includes all 5 Panthera species
+cat *Scaffold_vsPleo1 > Panthera_n5_vsPleo_Scaffold1.fasta
+cat *Scaffold_vsPleo2 > Panthera_n5_vsPleo_Scaffold2.fasta
+cat *Scaffold_vsPleo3 > Panthera_n5_vsPleo_Scaffold3.fasta
+cat *Scaffold_vsPleo4 > Panthera_n5_vsPleo_Scaffold4.fasta
+cat *Scaffold_vsPleo5 > Panthera_n5_vsPleo_Scaffold5.fasta
+cat *Scaffold_vsPleo6 > Panthera_n5_vsPleo_Scaffold6.fasta
+cat *Scaffold_vsPleo7 > Panthera_n5_vsPleo_Scaffold7.fasta
+cat *Scaffold_vsPleo8 > Panthera_n5_vsPleo_Scaffold8.fasta
+cat *Scaffold_vsPleo9 > Panthera_n5_vsPleo_Scaffold9.fasta
+cat *Scaffold_vsPleo0 > Panthera_n5_vsPleo_Scaffold0.fasta
+cat *Scaffold_vsPleo10 > Panthera_n5_vsPleo_Scaffold10.fasta
+cat *Scaffold_vsPleo11 > Panthera_n5_vsPleo_Scaffold11.fasta
+cat *Scaffold_vsPleo12 > Panthera_n5_vsPleo_Scaffold12.fasta
+cat *Scaffold_vsPleo13 > Panthera_n5_vsPleo_Scaffold13.fasta
+cat *Scaffold_vsPleo14 > Panthera_n5_vsPleo_Scaffold14.fasta
+cat *Scaffold_vsPleo15 > Panthera_n5_vsPleo_Scaffold15.fasta
+cat *Scaffold_vsPleo16 > Panthera_n5_vsPleo_Scaffold16.fasta
+cat *Scaffold_vsPleo17 > Panthera_n5_vsPleo_Scaffold17.fasta
+cat *Scaffold_vsPleo18 > Panthera_n5_vsPleo_Scaffold18.fasta
+
+##Run GERP on each scaffold alignment
+ml system gcc
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold0.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold10.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold11.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold12.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold13.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold14.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold15.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold16.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold17.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold1.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold2.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold3.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold4.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold5.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold6.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold7.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold8.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+./gerp/gerpcol -t Panthera_FromPub_SubPerSite_updated.nwk -f Panthera_n5_vsPleo_Scaffold9.fasta -a -e Panthera_pardus-Panthera_uncia-Panthera_tigris -v
+
+##seperate vcf by scaffold
+bgzip Lion_n4_lifted_over_c_rev.vcf
+bcftools index  Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031450.1  -Oz -o Lion_n4_scaffold0.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031451.1 -Oz -o Lion_n4_scaffold1.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031452.1 -Oz -o Lion_n4_scaffold2.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031453.1 -Oz -o Lion_n4_scaffold3.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031454.1 -Oz -o Lion_n4_scaffold4.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031455.1 -Oz -o Lion_n4_scaffold5.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031456.1 -Oz -o Lion_n4_scaffold6.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031457.1 -Oz -o Lion_n4_scaffold7.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031458.1 -Oz -o Lion_n4_scaffold8.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031459.1 -Oz -o Lion_n4_scaffold9.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031460.1 -Oz -o Lion_n4_scaffold10.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031461.1 -Oz -o Lion_n4_scaffold11.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031462.1 -Oz -o Lion_n4_scaffold12.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031463.1 -Oz -o Lion_n4_scaffold13.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031464.1 -Oz -o Lion_n4_scaffold14.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031465.1 -Oz -o Lion_n4_scaffold15.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031466.1 -Oz -o Lion_n4_scaffold16.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+bcftools view -r CM031467.1 -Oz -o Lion_n4_scaffold17.vcf.gz Lion_n4_lifted_over_c_rev.vcf.gz
+
+
+###Run Rscript (from https://star-protocols.cell.com/protocols/4202#bib2) to pull out only derived snps - makes one file per scaffold per sample
+##example control file:
+../Lion_VCF_by_Chrom/Lion_n4_scaffold0.vcf.gz
+../Panthera_n5_vsPleo_Scaffold0.fasta.rates
+0
+Lion_n4_scaffold0_GERP_out
+8
+
+##run the R script:
+Rscript Derived_alleles_extract.R Lion_cont0.txt
+
+##add a column to each output file with the header "Chrom" and the scaffold ID to each row
+##example for scaffold9 for sample 1
+##this line must be run for each scaffold and each sample
+awk -F',' 'BEGIN {OFS=","} NR==1{$0=$0",Chrom"} NR>1{$0=$0",scaffold9"} 1' 1_Lion_n4_scaffold0_GERP_out.txt > 1_Lion_n4_scaffold0_GERP_out_edited.txt
+
+###concatenate all scaffolds for each sample
+cat 1_Lion_n4_scaffold*_GERP_out_edited.txt >  1_Lion_n4__GERP_out_AllScaffolds.txt
+cat 2_Lion_n4_scaffold*_GERP_out_edited.txt >  2_Lion_n4__GERP_out_AllScaffolds.txt
+cat 3_Lion_n4_scaffold*_GERP_out_edited.txt >  3_Lion_n4__GERP_out_AllScaffolds.txt
+cat 4_Lion_n4_scaffold*_GERP_out_edited.txt >  4_Lion_n4__GERP_out_AllScaffolds.txt
+
+###Remove header lines from concatenated files:
+grep -v "Pos" 1_Lion_n4__GERP_out_AllScaffolds.txt > 1_Lion_n4__GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 2_Lion_n4__GERP_out_AllScaffolds.txt > 2_Lion_n4__GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 3_Lion_n4__GERP_out_AllScaffolds.txt > 3_Lion_n4__GERP_out_AllScaffolds_noHeader.txt
+grep -v "Pos" 4_Lion_n4__GERP_out_AllScaffolds.txt > 4_Lion_n4__GERP_out_AllScaffolds_noHeader.txt
+
+##Pull out just chromosomes and positions and change file name back to actual sample names
+awk -F',' '{print $NF","$1}' 1_Lion_n4__GERP_out_AllScaffolds_noHeader.txt > SRR10009886_Lion_n4__GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 2_Lion_n4__GERP_out_AllScaffolds_noHeader.txt > SRR13242484_Lion_n4__GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 3_Lion_n4__GERP_out_AllScaffolds_noHeader.txt > SRR836361_Lion_n4__GERP_out_AllScaffolds_bed.txt
+awk -F',' '{print $NF","$1}' 4_Lion_n4__GERP_out_AllScaffolds_noHeader.txt > SRR836370_Lion_n4__GERP_out_AllScaffolds_bed.txt
+
+###Change commas to tabs
+sed 's/,/\t/g' SRR10009886_Lion_n4__GERP_out_AllScaffolds_bed.txt  > SRR10009886_Lion_n4__GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR836361_Lion_n4__GERP_out_AllScaffolds_bed.txt > SRR836361_Lion_n4__GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR13242484_Lion_n4__GERP_out_AllScaffolds_bed.txt  > SRR13242484_Lion_n4__GERP_out_AllScaffolds.bed
+sed 's/,/\t/g' SRR836370_Lion_n4__GERP_out_AllScaffolds_bed.txt > SRR836370_Lion_n4__GERP_out_AllScaffolds.bed
+
+###rename chromosomes in bed file to match what it in vcf
+cat SRR10009886_Lion_n4__GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031450.1/g' | sed -e 's/scaffold17/CM031467.1/g' | sed -e 's/scaffold16/CM031466.1/g' | sed -e 's/scaffold15/CM031465.1/g' | sed -e 's/scaffold14/CM031464.1/g' | sed -e 's/scaffold13/CM031463.1/g' | sed -e 's/scaffold12/CM031462.1/g' | sed -e 's/scaffold11/CM031461.1/g' | sed -e 's/scaffold10/CM031460.1/g' | sed -e 's/scaffold9/CM031459.1/g' | sed -e 's/scaffold8/CM031458.1/g' | sed -e 's/scaffold7/CM031457.1/g' | sed -e 's/scaffold6/CM031456.1/g' | sed -e 's/scaffold5/CM031455.1/g' | sed -e 's/scaffold4/CM031454.1/g' | sed -e 's/scaffold3/CM031453.1/g' | sed -e 's/scaffold2/CM031452.1/g' | sed -e 's/scaffold1/CM031451.1/g'  > SRR10009886_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR836361_Lion_n4__GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031450.1/g' | sed -e 's/scaffold17/CM031467.1/g' | sed -e 's/scaffold16/CM031466.1/g' | sed -e 's/scaffold15/CM031465.1/g' | sed -e 's/scaffold14/CM031464.1/g' | sed -e 's/scaffold13/CM031463.1/g' | sed -e 's/scaffold12/CM031462.1/g' | sed -e 's/scaffold11/CM031461.1/g' | sed -e 's/scaffold10/CM031460.1/g' | sed -e 's/scaffold9/CM031459.1/g' | sed -e 's/scaffold8/CM031458.1/g' | sed -e 's/scaffold7/CM031457.1/g' | sed -e 's/scaffold6/CM031456.1/g' | sed -e 's/scaffold5/CM031455.1/g' | sed -e 's/scaffold4/CM031454.1/g' | sed -e 's/scaffold3/CM031453.1/g' | sed -e 's/scaffold2/CM031452.1/g' | sed -e 's/scaffold1/CM031451.1/g'  > SRR836361_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR13242484_Lion_n4__GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031450.1/g' | sed -e 's/scaffold17/CM031467.1/g' | sed -e 's/scaffold16/CM031466.1/g' | sed -e 's/scaffold15/CM031465.1/g' | sed -e 's/scaffold14/CM031464.1/g' | sed -e 's/scaffold13/CM031463.1/g' | sed -e 's/scaffold12/CM031462.1/g' | sed -e 's/scaffold11/CM031461.1/g' | sed -e 's/scaffold10/CM031460.1/g' | sed -e 's/scaffold9/CM031459.1/g' | sed -e 's/scaffold8/CM031458.1/g' | sed -e 's/scaffold7/CM031457.1/g' | sed -e 's/scaffold6/CM031456.1/g' | sed -e 's/scaffold5/CM031455.1/g' | sed -e 's/scaffold4/CM031454.1/g' | sed -e 's/scaffold3/CM031453.1/g' | sed -e 's/scaffold2/CM031452.1/g' | sed -e 's/scaffold1/CM031451.1/g'  > SRR13242484_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed
+cat SRR836370_Lion_n4__GERP_out_AllScaffolds.bed | sed -e 's/scaffold0/CM031450.1/g' | sed -e 's/scaffold17/CM031467.1/g' | sed -e 's/scaffold16/CM031466.1/g' | sed -e 's/scaffold15/CM031465.1/g' | sed -e 's/scaffold14/CM031464.1/g' | sed -e 's/scaffold13/CM031463.1/g' | sed -e 's/scaffold12/CM031462.1/g' | sed -e 's/scaffold11/CM031461.1/g' | sed -e 's/scaffold10/CM031460.1/g' | sed -e 's/scaffold9/CM031459.1/g' | sed -e 's/scaffold8/CM031458.1/g' | sed -e 's/scaffold7/CM031457.1/g' | sed -e 's/scaffold6/CM031456.1/g' | sed -e 's/scaffold5/CM031455.1/g' | sed -e 's/scaffold4/CM031454.1/g' | sed -e 's/scaffold3/CM031453.1/g' | sed -e 's/scaffold2/CM031452.1/g' | sed -e 's/scaffold1/CM031451.1/g'  > SRR836370_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed
+
+##change scaffold names back
+cat Lion_n4_annoted_classic.vcf | sed -e 's/NC_056679.1/CM031450.1/g' | sed -e 's/NC_056680.1/CM031451.1/g' | sed -e 's/NC_056681.1/CM031452.1/g' | sed -e 's/NC_056682.1/CM031453.1/g' | sed -e 's/NC_056683.1/CM031454.1/g' | sed -e 's/NC_056684.1/CM031455.1/g' | sed -e 's/NC_056685.1/CM031456.1/g' | sed -e 's/NC_056686.1/CM031457.1/g' | sed -e 's/NC_056687.1/CM031458.1/g' | sed -e 's/NC_056688.1/CM031459.1/g' | sed -e 's/NC_056689.1/CM031460.1/g' | sed -e 's/NC_056690.1/CM031461.1/g' | sed -e 's/NC_056691.1/CM031462.1/g' | sed -e 's/NC_056692.1/CM031463.1/g' | sed -e 's/NC_056693.1/CM031464.1/g' | sed -e 's/NC_056694.1/CM031465.1/g' | sed -e 's/NC_056695.1/CM031466.1/g' | sed -e 's/NC_056696.1/CM031467.1/g' > Lion_n4_annoted_classic_CMchromNames.vcf
+cat Lion_n4_annoted_original.vcf | sed -e 's/NC_056679.1/CM031450.1/g' | sed -e 's/NC_056680.1/CM031451.1/g' | sed -e 's/NC_056681.1/CM031452.1/g' | sed -e 's/NC_056682.1/CM031453.1/g' | sed -e 's/NC_056683.1/CM031454.1/g' | sed -e 's/NC_056684.1/CM031455.1/g' | sed -e 's/NC_056685.1/CM031456.1/g' | sed -e 's/NC_056686.1/CM031457.1/g' | sed -e 's/NC_056687.1/CM031458.1/g' | sed -e 's/NC_056688.1/CM031459.1/g' | sed -e 's/NC_056689.1/CM031460.1/g' | sed -e 's/NC_056690.1/CM031461.1/g' | sed -e 's/NC_056691.1/CM031462.1/g' | sed -e 's/NC_056692.1/CM031463.1/g' | sed -e 's/NC_056693.1/CM031464.1/g' | sed -e 's/NC_056694.1/CM031465.1/g' | sed -e 's/NC_056695.1/CM031466.1/g' | sed -e 's/NC_056696.1/CM031467.1/g' > Lion_n4_annoted_original_CMchromNames.vcf
+
+ml biology bcftools
+bcftools view -s SRR10009886 -o Lion_n4_annoted_classic_SRR10009886.vcf Lion_n4_annoted_classic_CMchromNames.vcf
+bcftools view -s SRR836361 -o  Lion_n4_annoted_classic_SRR836361.vcf Lion_n4_annoted_classic_CMchromNames.vcf
+bcftools view -s SRR13242484 -o Lion_n4_annoted_classic_SRR13242484.vcf Lion_n4_annoted_classic_CMchromNames.vcf
+bcftools view -s SRR836370 -o Lion_n4_annoted_classic_SRR836370.vcf Lion_n4_annoted_classic_CMchromNames.vcf
+
+bcftools view -s SRR10009886 -o Lion_n4_annoted_original_SRR10009886.vcf Lion_n4_annoted_original_CMchromNames.vcf
+bcftools view -s SRR836361 -o  Lion_n4_annoted_original_SRR836361.vcf Lion_n4_annoted_original_CMchromNames.vcf
+bcftools view -s SRR13242484 -o Lion_n4_annoted_original_SRR13242484.vcf Lion_n4_annoted_original_CMchromNames.vcf
+bcftools view -s SRR836370 -o Lion_n4_annoted_original_SRR836370.vcf Lion_n4_annoted_original_CMchromNames.vcf
+
+###Pull out only derived SNPs from each vcf using the bed file of derived sites
+grep -Ff Lion_GERP_output/SRR10009886_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed snpeff/snpEff/Lion_n4_annoted_original_SRR10009886.vcf > Lion_Derived_output/Lion_n4_annoted_original_SRR10009886_derived.txt
+grep -Ff Lion_GERP_output/SRR13242484_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed snpeff/snpEff/Lion_n4_annoted_original_SRR13242484.vcf > Lion_Derived_output/Lion_n4_annoted_original_SRR13242484_derived.txt
+grep -Ff Lion_GERP_output/SRR836361_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed snpeff/snpEff/Lion_n4_annoted_original_SRR836361.vcf > Lion_Derived_output/Lion_n4_annoted_original_SRR836361_derived.txt
+grep -Ff Lion_GERP_output/SRR836370_Lion_n4__GERP_out_AllScaffolds_CHROMrenamed.bed snpeff/snpEff/Lion_n4_annoted_original_SRR836370.vcf > Lion_Derived_output/Lion_n4_annoted_original_SRR836370_derived.txt
+
