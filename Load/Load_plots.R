@@ -1,22 +1,24 @@
 setwd("~/Documents/R")
 library(ggplot2)
+
 library(gridExtra)
-library(stats)
+
 cbPalette = c("Jaguar" = "grey60", "Lion" = "grey60", "Amur Tiger" = "grey60", "Bengal Tiger" = "grey60","Sumatran Tiger" = "grey60", "Malayan Tiger" = "grey60", "Snow Leopard" = "gold3",  "Asian Leopard" = "grey60", "African Leopard" = "grey60")
 
-loadNorel <- read.csv("ALL_Panthera_SNPeff_High_Mod_SYN.csv", header = T)
+LoadFinal <- read.csv("Panthera_Load_Final_cleaned.csv", header = T)
 
 
-####High vs SYN
-HS_hom <- ggplot(loadNorel, aes(x=population, y=HIGH_SYN_hom, color = population, fill = population)) + 
+####High
+
+High_tot_hom <- ggplot(LoadFinal, aes(x=population, y=High_tot_hom, color = population, fill = population)) + 
   geom_boxplot(alpha=0.5) +
   theme(legend.position="none") +
-  xlab("Species") + ylab("Highly deleterious/Synonomous homozygotes")
+  xlab("Species") + ylab("Highly deleterious/total coding homozygotes")
 
-HS_homa <- HS_hom + scale_y_continuous() + 
+High_tot_homa <- High_tot_hom + scale_y_continuous() + 
   scale_x_discrete(limits=c("African Leopard", "Asian Leopard", "Jaguar", "Lion", "Amur Tiger", "Bengal Tiger","Sumatran Tiger", "Malayan Tiger", "Snow Leopard"))+
   theme_classic()+ 
-  ylim(0.002,0.1)+ 
+  ylim(0,0.032)+ 
   scale_fill_manual(name = "population", values = cbPalette) +
   scale_color_manual(name = "population", values = cbPalette) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, cex=1.5) +
@@ -29,15 +31,15 @@ HS_homa <- HS_hom + scale_y_continuous() +
         panel.grid.major.y = element_line(color = "grey90"),
         plot.margin = margin(.5, 1, .5, .5, "cm"))
 
-HS_het <- ggplot(loadNorel, aes(x=population, y=HIGH_SYN_het, color = population, fill = population)) + 
+High_tot_het <- ggplot(LoadFinal, aes(x=population, y=High_tot_het, color = population, fill = population)) + 
   geom_boxplot(alpha=0.5) +
   theme(legend.position="none") +
-  xlab("Species") + ylab("Highly deleterious/Synonomous heterozygotes")
+  xlab("Species") + ylab("Highly deleterious/total coding heterozygotes")
 
-HS_heta <- HS_het + scale_y_continuous() + 
+High_tot_heta <- High_tot_het + scale_y_continuous() + 
   scale_x_discrete(limits=c("African Leopard", "Asian Leopard", "Jaguar", "Lion", "Amur Tiger", "Bengal Tiger","Sumatran Tiger", "Malayan Tiger", "Snow Leopard"))+
   theme_classic()+ 
-  ylim(-.001,0.12)+ 
+  ylim(0,0.032)+ 
   scale_fill_manual(name = "population", values = cbPalette) +
   scale_color_manual(name = "population", values = cbPalette) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, cex=1.5) +
@@ -50,46 +52,50 @@ HS_heta <- HS_het + scale_y_continuous() +
         panel.grid.major.y = element_line(color = "grey90"),
         plot.margin = margin(.5, 1, .5, .5, "cm"))
 
-loadNorel_d <- data.frame(loadNorel)
+LoadFinal_d <- data.frame(LoadFinal)
 
-SLsubet <- subset.data.frame(loadNorel_d, population == "Snow Leopard")
-JagSubset <- subset.data.frame(loadNorel_d, population == "Jaguar")
-AfLeopSubset <- subset.data.frame(loadNorel_d, population == "African Leopard")
-AsLeopSubset <- subset.data.frame(loadNorel_d, population == "Asian Leopard")
-Lionsubset <- subset.data.frame(loadNorel_d, population == "Lion")
-AmurSubset <- subset.data.frame(loadNorel_d, population == "Amur Tiger")
-BenSubset <- subset.data.frame(loadNorel_d, population == "Bengal Tiger")
-SumSubset <- subset.data.frame(loadNorel_d, population == "Sumatran Tiger")
-MalSubset <- subset.data.frame(loadNorel_d, population == "Malayan Tiger")
+SLsubet <- subset.data.frame(LoadFinal_d, population == "Snow Leopard")
+JagSubset <- subset.data.frame(LoadFinal_d, population == "Jaguar")
+AfLeopSubset <- subset.data.frame(LoadFinal_d, population == "African Leopard")
+AsLeopSubset <- subset.data.frame(LoadFinal_d, population == "Asian Leopard")
+Lionsubset <- subset.data.frame(LoadFinal_d, population == "Lion")
+AmurSubset <- subset.data.frame(LoadFinal_d, population == "Amur Tiger")
+BenSubset <- subset.data.frame(LoadFinal_d, population == "Bengal Tiger")
+SumSubset <- subset.data.frame(LoadFinal_d, population == "Sumatran Tiger")
+MalSubset <- subset.data.frame(LoadFinal_d, population == "Malayan Tiger")
 
-wilcox.test(SLsubet$HIGH_SYN_hom, JagSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, AfLeopSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, AsLeopSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, Lionsubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, AmurSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, BenSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, SumSubset$HIGH_SYN_hom)
-wilcox.test(SLsubet$HIGH_SYN_hom, MalSubset$HIGH_SYN_hom)
+wilcox.test(SLsubet$High_tot_hom, JagSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, AfLeopSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, AsLeopSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, Lionsubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, AmurSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, BenSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, SumSubset$High_tot_hom)
+wilcox.test(SLsubet$High_tot_hom, MalSubset$High_tot_hom)
 
-wilcox.test(SLsubet$HIGH_SYN_het, JagSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, AfLeopSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, AsLeopSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, Lionsubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, AmurSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, BenSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, SumSubset$HIGH_SYN_het)
-wilcox.test(SLsubet$HIGH_SYN_het, MalSubset$HIGH_SYN_het)
 
-####Mod vs SYN
-MS_hom <- ggplot(loadNorel_d, aes(x=population, y=MOD_SYN_hom, color = population, fill = population)) + 
+wilcox.test(SLsubet$High_tot_het, JagSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, AfLeopSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, AsLeopSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, Lionsubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, AmurSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, BenSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, SumSubset$High_tot_het)
+wilcox.test(SLsubet$High_tot_het, MalSubset$High_tot_het)
+
+grid.arrange(High_tot_homa, High_tot_heta, ncol = 2)
+
+####Moderate
+
+Mod_tot_hom <- ggplot(LoadFinal, aes(x=population, y=Mod_tot_hom, color = population, fill = population)) + 
   geom_boxplot(alpha=0.5) +
   theme(legend.position="none") +
-  xlab("Species") + ylab("Mod deleterious/Synonomous homozygotes")
+  xlab("Species") + ylab("Mod deleterious/total coding homozygotes")
 
-MS_homa <- MS_hom + scale_y_continuous() + 
+Mod_tot_homa <- Mod_tot_hom + scale_y_continuous() + 
   scale_x_discrete(limits=c("African Leopard", "Asian Leopard", "Jaguar", "Lion", "Amur Tiger", "Bengal Tiger","Sumatran Tiger", "Malayan Tiger", "Snow Leopard"))+
   theme_classic()+ 
-  ylim(0.35,0.84)+ 
+  ylim(0.26,0.46)+ 
   scale_fill_manual(name = "population", values = cbPalette) +
   scale_color_manual(name = "population", values = cbPalette) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, cex=1.5) +
@@ -102,15 +108,15 @@ MS_homa <- MS_hom + scale_y_continuous() +
         panel.grid.major.y = element_line(color = "grey90"),
         plot.margin = margin(.5, 1, .5, .5, "cm"))
 
-MS_het <- ggplot(loadNorel_d, aes(x=population, y=MOD_SYN_het, color = population, fill = population)) + 
+Mod_tot_het <- ggplot(LoadFinal, aes(x=population, y=Mod_tot_het, color = population, fill = population)) + 
   geom_boxplot(alpha=0.5) +
   theme(legend.position="none") +
-  xlab("Species") + ylab("Mod deleterious/Synonomous heterozygotes")
+  xlab("Species") + ylab("Mod deleterious/total coding heterozygotes")
 
-MS_heta <- MS_het + scale_y_continuous() + 
+Mod_tot_heta <- Mod_tot_het + scale_y_continuous() + 
   scale_x_discrete(limits=c("African Leopard", "Asian Leopard", "Jaguar", "Lion", "Amur Tiger", "Bengal Tiger","Sumatran Tiger", "Malayan Tiger", "Snow Leopard"))+
   theme_classic()+ 
-  ylim(0.23,1.3)+ 
+  ylim(0.2,.55)+ 
   scale_fill_manual(name = "population", values = cbPalette) +
   scale_color_manual(name = "population", values = cbPalette) +
   geom_jitter(height = 0, width = 0.1, alpha = 0.5, cex=1.5) +
@@ -124,25 +130,23 @@ MS_heta <- MS_het + scale_y_continuous() +
         plot.margin = margin(.5, 1, .5, .5, "cm"))
 
 
-wilcox.test(SLsubet$MOD_SYN_hom, JagSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, AfLeopSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, AsLeopSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, Lionsubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, AmurSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, BenSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, SumSubset$MOD_SYN_hom)
-wilcox.test(SLsubet$MOD_SYN_hom, MalSubset$MOD_SYN_hom)
+wilcox.test(SLsubet$Mod_tot_hom, JagSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, AfLeopSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, AsLeopSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, Lionsubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, AmurSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, BenSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, SumSubset$Mod_tot_hom)
+wilcox.test(SLsubet$Mod_tot_hom, MalSubset$Mod_tot_hom)
 
-wilcox.test(SLsubet$MOD_SYN_het, JagSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, AfLeopSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, AsLeopSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, Lionsubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, AmurSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, BenSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, SumSubset$MOD_SYN_het)
-wilcox.test(SLsubet$MOD_SYN_het, MalSubset$MOD_SYN_het)
-
-grid.arrange(HS_homa, MS_homa, ncol = 2)
-grid.arrange(HS_heta, MS_heta, ncol = 2)
+wilcox.test(SLsubet$Mod_tot_het, JagSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, AfLeopSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, AsLeopSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, Lionsubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, AmurSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, BenSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, SumSubset$Mod_tot_het)
+wilcox.test(SLsubet$Mod_tot_het, MalSubset$Mod_tot_het)
 
 
+grid.arrange(Mod_tot_homa, Mod_tot_heta, ncol = 2)
