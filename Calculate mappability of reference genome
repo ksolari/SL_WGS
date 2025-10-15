@@ -1,0 +1,25 @@
+##Calculate mappability of each base pair in reference genome:
+
+conda install -c bioconda genmap
+
+genmap index -F Reference.fna -I Reference_index
+
+genmap map -K 30 -E 2 -I Reference_index -O Reference_mappability_output -b
+
+###and then remove all areas that have mappability less than 1
+
+## make FilterMappability.py:
+
+import fileinput
+for line in fileinput.input():
+        line = line[:-1]
+        parts=line.split("\t")
+        value = parts[4]
+        valueNum = float(value)
+        if valueNum < 0.9999999999999999999999999:
+                #print(parts)
+                print(line)
+
+
+python FilterMappability.py Reference_mappability_output.bed > Reference_mappability_output_1cutoff.bed
+
